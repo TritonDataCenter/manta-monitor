@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor;
 
 import com.google.inject.Guice;
@@ -6,20 +13,17 @@ import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.chains.ChainRunner;
 import com.joyent.manta.monitor.chains.FileUploadGetDeleteChain;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
-import io.honeybadger.reporter.NoticeReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Provider;
 
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
     private static final HoneybadgerUncaughtExceptionHandler UNCAUGHT_EXCEPTION_HANDLER;
-    private static final MonitorModule MONITOR_MODULE;
+    private static final MantaMonitorModule MONITOR_MODULE;
 
     static {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
-        MONITOR_MODULE = new MonitorModule(UNCAUGHT_EXCEPTION_HANDLER);
+        MONITOR_MODULE = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER);
     }
 
     public static void main(String[] args) throws InterruptedException {
