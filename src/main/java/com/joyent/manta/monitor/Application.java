@@ -3,14 +3,11 @@ package com.joyent.manta.monitor;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.chains.ChainRunner;
 import com.joyent.manta.monitor.chains.FileUploadGetDeleteChain;
-import com.joyent.manta.monitor.functions.GeneratePathBasedOnSHA256;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
-
-import static com.joyent.manta.client.MantaClient.SEPARATOR;
 
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
