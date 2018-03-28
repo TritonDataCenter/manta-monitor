@@ -5,6 +5,7 @@ import com.joyent.manta.client.MantaMetadata;
 import com.joyent.manta.client.MantaObjectResponse;
 import com.joyent.manta.http.MantaHttpHeaders;
 import com.joyent.manta.monitor.MantaOperationContext;
+import com.joyent.manta.monitor.MantaOperationException;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -36,6 +37,8 @@ public class PutFileCommand implements MantaOperationCommand {
             final UUID requestId = UUID.fromString(response.getRequestId());
             final Integer responseTime = parseResponseTime(response.getHttpHeaders());
             context.getResponseTimes().put(requestId, responseTime);
+        } catch (RuntimeException e) {
+            throw new MantaOperationException(e).setPath(filePath);
         } finally {
             Files.deleteIfExists(context.getTestFile());
         }

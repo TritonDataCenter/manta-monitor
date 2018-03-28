@@ -1,9 +1,11 @@
 package com.joyent.manta.monitor.chains;
 
+import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import com.joyent.manta.monitor.commands.*;
-import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
+import io.honeybadger.reporter.NoticeReporter;
 
+import javax.inject.Inject;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableList.*;
@@ -17,7 +19,9 @@ public class FileUploadGetDeleteChain extends MantaOperationsChain {
             GetFileCommand.INSTANCE,
             DeleteFileCommand.INSTANCE);
 
-    public FileUploadGetDeleteChain(final Thread.UncaughtExceptionHandler exceptionHandler) {
-        super(COMMANDS, exceptionHandler);
+    @Inject
+    public FileUploadGetDeleteChain(final NoticeReporter reporter,
+                                    final HoneyBadgerRequestFactory requestFactory) {
+        super(COMMANDS, reporter, requestFactory);
     }
 }
