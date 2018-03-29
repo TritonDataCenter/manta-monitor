@@ -9,22 +9,34 @@ package com.joyent.manta.monitor;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.name.Names;
 import com.joyent.manta.client.MantaClient;
-import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
+import com.joyent.manta.monitor.config.Configuration;
+import com.joyent.manta.monitor.config.ConfigurationProvider;
 import io.honeybadger.reporter.NoticeReporter;
 
-public class MantaMonitorModule implements Module {
-    private final HoneybadgerUncaughtExceptionHandler honeyBadgerHandler;
+import java.net.URI;
 
-    public MantaMonitorModule(final HoneybadgerUncaughtExceptionHandler honeyBadgerHandler) {
-        this.honeyBadgerHandler = honeyBadgerHandler;
+public class MantaMonitorModule implements Module {
+    private final Thread.UncaughtExceptionHandler honeyBadgerHandler;
+    private final NoticeReporter noticeReporter;
+    private final URI configURI;
+
+    public MantaMonitorModule(final Thread.UncaughtExceptionHandler uncaughtExceptionHandler,
+                              final NoticeReporter noticeReporter,
+                              final URI configUri) {
+        this.honeyBadgerHandler = uncaughtExceptionHandler;
+        this.noticeReporter = noticeReporter;
+        this.configURI = configUri;
     }
 
     public void configure(final Binder binder) {
-        binder.bind(io.honeybadger.reporter.config.ConfigContext.class).toInstance(honeyBadgerHandler.getConfig());
-        binder.bind(NoticeReporter.class).toInstance(honeyBadgerHandler.getReporter());
+        binder.bind(io.honeybadger.reporter.config.ConfigContext.class).toInstance(noticeReporter.getConfig());
+        binder.bind(NoticeReporter.class).toInstance(noticeReporter);
         binder.bind(Thread.UncaughtExceptionHandler.class).toInstance(honeyBadgerHandler);
         binder.bind(com.joyent.manta.config.ConfigContext.class).toProvider(MantaConfigContextProvider.class);
         binder.bind(MantaClient.class).toProvider(MantaClientProvider.class).asEagerSingleton();
+        binder.bind(URI.class).annotatedWith(Names.named("configUri")).toInstance(configURI);
+        binder.bind(Configuration.class).toProvider(ConfigurationProvider.class);
     }
 }

@@ -1,0 +1,9 @@
+{
+  "testRunners": [
+    {
+      "testChainClassName":"com.joyent.manta.monitor.chains.FileUploadGetDeleteChain",
+      "name":"simple-put",
+      "threads":5
+    }
+  ]
+}
