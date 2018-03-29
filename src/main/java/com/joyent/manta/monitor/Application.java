@@ -25,6 +25,9 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * This is the main entry point into the Manta Monitor application.
+ */
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
     private static final HoneybadgerUncaughtExceptionHandler UNCAUGHT_EXCEPTION_HANDLER;
@@ -33,6 +36,11 @@ public class Application {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
     }
 
+    /**
+     * Entry point to the application
+     * @param args requires a single element array with the first element being the URI to a config file
+     * @throws InterruptedException thrown when interrupted
+     */
     public static void main(String[] args) throws InterruptedException {
         if (args.length == 0) {
             System.err.println("Manta monitor requires a single parameter "
@@ -44,11 +52,30 @@ public class Application {
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
         final Injector injector = Guice.createInjector(module);
-        final MantaClient client = injector.getInstance(MantaClient.class);
         final Configuration configuration = injector.getInstance(Configuration.class);
+        final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
 
+        while (!runningChains.isEmpty()) {
+            runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
+            Thread.currentThread().wait(2000);
+        }
+    }
+
+    /**
+     * Iterates through all of the monitor test chains defined in the
+     * configuration and starts them.
+     *
+     * @param configuration configuration to load
+     * @param injector Guice DI object
+     * @return a set of all chain runners started
+     */
+    private static Set<ChainRunner> startAllChains(final Configuration configuration,
+                                                   final Injector injector) {
         final Set<ChainRunner> runningChains = new LinkedHashSet<>(configuration.getTestRunners().size());
+        final MantaClient client = injector.getInstance(MantaClient.class);
 
+        /* We programmatically load each monitor test chain as specified by the
+         * configuration file. */
         for (Runner runner : configuration.getTestRunners()) {
             try {
                 @SuppressWarnings("unchecked")
@@ -63,10 +90,7 @@ public class Application {
             }
         }
 
-        while (!runningChains.isEmpty()) {
-            runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
-            Thread.currentThread().wait(2000);
-        }
+        return runningChains;
     }
 
     private static URI parseConfigFileURI(final String uriString) {

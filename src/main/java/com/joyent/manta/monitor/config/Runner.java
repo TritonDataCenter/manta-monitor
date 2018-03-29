@@ -22,10 +22,10 @@ public class Runner {
     private int threads;
 
     @JsonCreator
-    public Runner(@JsonProperty("testChainClassName") final String testChainClassName,
+    public Runner(@JsonProperty("chainClassName") final String chainClassName,
                   @JsonProperty("name") final String name,
                   @JsonProperty("threads") final int threads) {
-        this.chainClassName = testChainClassName;
+        this.chainClassName = chainClassName;
         this.name = name;
         this.threads = threads;
     }
