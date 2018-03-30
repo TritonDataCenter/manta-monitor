@@ -27,16 +27,19 @@ import java.util.Objects;
 public class HoneyBadgerRequestFactory {
     private final com.joyent.manta.config.ConfigContext mantaConfig;
     private final io.honeybadger.reporter.config.ConfigContext hbConfig;
+    private final InstanceMetadata metadata;
 
     @Inject
     public HoneyBadgerRequestFactory(final MantaClient client,
+                                     final InstanceMetadata metadata,
                                      final io.honeybadger.reporter.config.ConfigContext hbConfig) {
         this.mantaConfig = client.getContext();
+        this.metadata = metadata;
         this.hbConfig = hbConfig;
     }
 
-    public Request build(final String path) {
-        return build(Objects.requireNonNull(path), null, null);
+    public Request build(@Nullable final String path) {
+        return build(path, null, null);
     }
 
     public Request build(@Nullable final String path,
@@ -52,7 +55,7 @@ public class HoneyBadgerRequestFactory {
         if (path == null) {
             uri = null;
         } else {
-            uri = buildURI(path);
+            uri = buildURI(path).normalize();
         }
 
         return build(uri, headers, exceptionContext);
@@ -63,7 +66,7 @@ public class HoneyBadgerRequestFactory {
                          @Nullable final ExceptionContext exceptionContext) {
         final String uriText;
         if (uri != null) {
-            uriText = uri.toASCIIString();
+            uriText = uri.normalize().toASCIIString();
         } else {
             uriText = null;
         }
@@ -98,6 +101,12 @@ public class HoneyBadgerRequestFactory {
     private Context buildContext(@Nullable final Map<String, ?> additionalContext,
                                  @Nullable final ExceptionContext exceptionContext) {
         final Context context = new Context().setUsername(mantaConfig.getMantaUser());
+
+        if (metadata != null) {
+            for (Map.Entry<String, String> entry : metadata.asMap().entrySet()) {
+                context.put(entry.getKey(), entry.getValue());
+            }
+        }
 
         if (additionalContext != null) {
             for (Map.Entry<String, ?> entry : additionalContext.entrySet()) {

@@ -13,9 +13,10 @@ import com.joyent.manta.client.MantaObjectResponse;
 import com.joyent.manta.http.MantaHttpHeaders;
 import com.joyent.manta.monitor.MantaOperationContext;
 import com.joyent.manta.monitor.MantaOperationException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.UUID;
@@ -25,6 +26,8 @@ public class PutFileCommand implements MantaOperationCommand {
 
     @Override
     public boolean execute(final MantaOperationContext context) throws Exception {
+        validateTestFileSize(context);
+
         final MantaClient client = context.getMantaClient();
         final String filePath = generateFilePath(context);
         context.setFilePath(filePath);
@@ -49,6 +52,22 @@ public class PutFileCommand implements MantaOperationCommand {
         }
 
         return CONTINUE_PROCESSING;
+    }
+
+    protected static long validateTestFileSize(final MantaOperationContext context)
+            throws IOException {
+        Objects.requireNonNull(context.getTestFile());
+        final long fileSize = context.getTestFileSize();
+        final long actualFileSize = Files.size(context.getTestFile());
+
+        if (fileSize != actualFileSize) {
+            String msg = String.format("File written to filesystem [%d bytes] "
+                            + "is not the same size as stored in context [%d bytes]",
+                    actualFileSize, fileSize);
+            throw new IllegalArgumentException(msg);
+        }
+
+        return fileSize;
     }
 
     protected static MantaHttpHeaders buildHeaders() {

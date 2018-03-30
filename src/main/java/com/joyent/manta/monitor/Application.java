@@ -59,7 +59,7 @@ public class Application {
 
         while (!runningChains.isEmpty()) {
             runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
-            Thread.currentThread().wait(2000);
+            Thread.sleep(2000);
         }
     }
 

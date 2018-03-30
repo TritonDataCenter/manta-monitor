@@ -8,6 +8,7 @@
 package com.joyent.manta.monitor.chains;
 
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
+import com.joyent.manta.monitor.InstanceMetadata;
 import com.joyent.manta.monitor.commands.DeleteFileCommand;
 import com.joyent.manta.monitor.commands.GenerateFileCommand;
 import com.joyent.manta.monitor.commands.GetFileCommand;
@@ -35,7 +36,8 @@ public class FileMultipartUploadGetDeleteChain extends MantaOperationsChain {
 
     @Inject
     public FileMultipartUploadGetDeleteChain(final NoticeReporter reporter,
-                                             final HoneyBadgerRequestFactory requestFactory) {
-        super(COMMANDS, reporter, requestFactory);
+                                             final HoneyBadgerRequestFactory requestFactory,
+                                             final InstanceMetadata metadata) {
+        super(COMMANDS, reporter, requestFactory, metadata);
     }
 }

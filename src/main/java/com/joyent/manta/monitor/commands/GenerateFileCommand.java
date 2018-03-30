@@ -27,7 +27,9 @@ public class GenerateFileCommand implements MantaOperationCommand {
 
     @Override
     public boolean execute(final MantaOperationContext context) throws Exception {
-        final int filesize = generateFileSize(context);
+        final long filesize = generateFileSize(context);
+        context.setTestFileSize(filesize);
+
         final Path temp = Files.createTempFile(String.format("mput-%s-",
                 LocalDate.now().format(ISO_LOCAL_DATE)),
                 ".txt");
@@ -52,7 +54,7 @@ public class GenerateFileCommand implements MantaOperationCommand {
         return CONTINUE_PROCESSING;
     }
 
-    private static int generateFileSize(final MantaOperationContext context) {
+    private static long generateFileSize(final MantaOperationContext context) {
         final int min = context.getMinFileSize();
         final int max = context.getMaxFileSize();
 

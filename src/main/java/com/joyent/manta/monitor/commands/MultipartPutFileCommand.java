@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -61,8 +60,8 @@ public class MultipartPutFileCommand extends PutFileCommand {
     private static long validateTestFileSize(final MantaOperationContext context,
                                              final ServerSideMultipartManager multipartManager)
             throws IOException {
-        Objects.requireNonNull(context.getTestFile());
-        final long fileSize = Files.size(context.getTestFile());
+        final long fileSize = validateTestFileSize(context);
+
         if (fileSize < multipartManager.getMinimumPartSize()) {
             String msg = String.format("File size too small for multipart upload"
                             +" [minimum_size=%d,actual_size=%d]",
@@ -90,7 +89,7 @@ public class MultipartPutFileCommand extends PutFileCommand {
             final int totalParts,
             final ServerSideMultipartManager multipartManager) throws IOException {
         final Path testFilePath = context.getTestFile();
-        final long fileSize = Files.size(testFilePath);
+        final long fileSize = context.getTestFileSize();
         final int minimumPartSize = multipartManager.getMinimumPartSize();
 
         final long[] chunkSizes = calculateChunkSizes(fileSize, totalParts,
@@ -128,9 +127,8 @@ public class MultipartPutFileCommand extends PutFileCommand {
     }
 
     private static int calculateNumberOfParts(final MantaOperationContext context,
-                                              final int minimumPartSize) throws IOException {
-        final Path testFilePath = context.getTestFile();
-        final long fileSize = Files.size(testFilePath);
+                                              final int minimumPartSize) {
+        final long fileSize = context.getTestFileSize();
 
         if (fileSize < minimumPartSize) {
             String msg = String.format("Unable to calculate file parts count "

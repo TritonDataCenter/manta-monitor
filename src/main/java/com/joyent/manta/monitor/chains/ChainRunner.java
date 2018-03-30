@@ -14,7 +14,6 @@ import com.joyent.manta.monitor.functions.GeneratePathBasedOnSHA256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,12 +76,10 @@ public class ChainRunner {
             return null;
         };
 
-        try {
-            executorService.invokeAll(Collections.nCopies(threads, callable));
-        } catch (InterruptedException e) {
-            this.running = false;
-            executorService.shutdown();
-            Thread.currentThread().interrupt();
+        // Start up multiple testing threads so that we reach the number in
+        // the configuration
+        for (int i = 0; i < threads; i++) {
+            executorService.submit(callable);
         }
     }
 
@@ -103,7 +100,7 @@ public class ChainRunner {
 
         context.setMantaClient(client)
                .setFilePathGenerationFunction(pathGenerator)
-               .setMinFileSize(10485760)
-               .setMaxFileSize(104857600);
+               .setMinFileSize(runnerConfig.getMinFileSize())
+               .setMaxFileSize(runnerConfig.getMaxFileSize());
     }
 }

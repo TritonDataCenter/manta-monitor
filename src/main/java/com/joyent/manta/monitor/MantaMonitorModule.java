@@ -31,6 +31,7 @@ public class MantaMonitorModule implements Module {
     }
 
     public void configure(final Binder binder) {
+        binder.bind(InstanceMetadata.class).asEagerSingleton();
         binder.bind(io.honeybadger.reporter.config.ConfigContext.class).toInstance(noticeReporter.getConfig());
         binder.bind(NoticeReporter.class).toInstance(noticeReporter);
         binder.bind(Thread.UncaughtExceptionHandler.class).toInstance(honeyBadgerHandler);

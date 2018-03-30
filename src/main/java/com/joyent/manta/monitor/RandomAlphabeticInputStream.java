@@ -7,7 +7,7 @@
  */
 package com.joyent.manta.monitor;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.io.IOException;

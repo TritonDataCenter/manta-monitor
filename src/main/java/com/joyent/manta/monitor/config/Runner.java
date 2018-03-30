@@ -32,6 +32,8 @@ public class Runner {
         this.chainClassName = chainClassName;
         this.name = name;
         this.threads = threads;
+        this.minFileSize = minFileSize;
+        this.maxFileSize = maxFileSize;
     }
 
     public String getChainClassName() {
