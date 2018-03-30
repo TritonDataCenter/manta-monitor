@@ -1,0 +1,20 @@
+{
+  "testRunners": [
+    // Configuration for a simple PUT
+    {
+      "chainClassName":"com.joyent.manta.monitor.chains.FileUploadGetDeleteChain",
+      "name":"simple-put",
+      "threads":5,
+      "minFileSize":4096,
+      "maxFileSize":65536
+    },
+    // Configuration for a MPU
+    {
+      "chainClassName":"com.joyent.manta.monitor.chains.FileMultipartUploadGetDeleteChain",
+      "name":"mpu-put",
+      "threads":5,
+      "minFileSize":10485760,
+      "maxFileSize":104857600
+    }
+  ]
+}

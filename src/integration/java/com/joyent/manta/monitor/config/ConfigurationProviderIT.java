@@ -84,7 +84,7 @@ public class ConfigurationProviderIT {
 
         Set<Runner> expected = ImmutableSet.of(
                 new Runner("com.joyent.manta.monitor.chains.FileUploadGetDeleteChain",
-                        "simple-put", 5)
+                        "simple-put", 5, 4096, 65536)
         );
 
         // Note we don't load the ConfigurationProvider available via DI

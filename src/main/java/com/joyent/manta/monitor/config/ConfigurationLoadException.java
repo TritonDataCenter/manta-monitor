@@ -14,6 +14,8 @@ import org.apache.commons.lang3.exception.ExceptionContext;
  * Exception thrown when there is a problem loading a configuration file.
  */
 public class ConfigurationLoadException extends ContextedRuntimeException {
+    private static final long serialVersionUID = 2617874007738742587L;
+
     public ConfigurationLoadException() {
     }
 

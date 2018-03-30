@@ -9,6 +9,7 @@ package com.joyent.manta.monitor.chains;
 
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.MantaOperationContext;
+import com.joyent.manta.monitor.config.Runner;
 import com.joyent.manta.monitor.functions.GeneratePathBasedOnSHA256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,18 +31,19 @@ public class ChainRunner {
     private final MantaClient client;
     private final ExecutorService executorService;
     private final GeneratePathBasedOnSHA256 pathGenerator;
+    private final Runner runnerConfig;
 
     private volatile boolean running = true;
 
     public ChainRunner(final MantaOperationsChain chain,
-                       final String name,
-                       final int threads,
+                       final Runner runnerConfig,
                        final MantaClient client,
                        final Thread.UncaughtExceptionHandler exceptionHandler) {
         this.chain = chain;
-        this.name = name;
-        this.threads = threads;
+        this.name = runnerConfig.getName();
+        this.threads = runnerConfig.getThreads();
         this.client = client;
+        this.runnerConfig = runnerConfig;
         this.pathGenerator = new GeneratePathBasedOnSHA256(
                 client.getContext().getMantaHomeDirectory()
                         + SEPARATOR + "stor" + SEPARATOR + "manta-monitor-data");
@@ -101,7 +103,7 @@ public class ChainRunner {
 
         context.setMantaClient(client)
                .setFilePathGenerationFunction(pathGenerator)
-               .setMinFileSize(100)
-               .setMaxFileSize(10000);
+               .setMinFileSize(10485760)
+               .setMaxFileSize(104857600);
     }
 }

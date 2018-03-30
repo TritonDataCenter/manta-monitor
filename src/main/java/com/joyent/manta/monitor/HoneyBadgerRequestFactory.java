@@ -14,7 +14,7 @@ import io.honeybadger.reporter.dto.Context;
 import io.honeybadger.reporter.dto.Params;
 import io.honeybadger.reporter.dto.Request;
 import io.honeybadger.reporter.dto.Session;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionContext;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
@@ -36,17 +36,38 @@ public class HoneyBadgerRequestFactory {
     }
 
     public Request build(final String path) {
-        return build(path, null, null);
+        return build(Objects.requireNonNull(path), null, null);
     }
 
-    public Request build(final String path, @Nullable final ExceptionContext exceptionContext) {
+    public Request build(@Nullable final String path,
+                         @Nullable final ExceptionContext exceptionContext) {
         return build(path, null, exceptionContext);
     }
 
-    public Request build(final String path,
+    public Request build(@Nullable final String path,
                          @Nullable final MantaHttpHeaders headers,
                          @Nullable final ExceptionContext exceptionContext) {
-        final URI uri = buildURI(path);
+        final URI uri;
+
+        if (path == null) {
+            uri = null;
+        } else {
+            uri = buildURI(path);
+        }
+
+        return build(uri, headers, exceptionContext);
+    }
+
+    public Request build(@Nullable final URI uri,
+                         @Nullable final MantaHttpHeaders headers,
+                         @Nullable final ExceptionContext exceptionContext) {
+        final String uriText;
+        if (uri != null) {
+            uriText = uri.toASCIIString();
+        } else {
+            uriText = null;
+        }
+
         final Params params = new Params(hbConfig.getExcludedParams());
         final Session session = new Session();
         final CgiData cgiData = new CgiData();
@@ -56,13 +77,13 @@ public class HoneyBadgerRequestFactory {
             Map<String, Object> missing = cgiData.addFromHttpHeaders(headers, Object::toString);
             context = buildContext(missing, exceptionContext);
         } else {
-            context = buildContext(null, null);
+            context = buildContext(null, exceptionContext);
         }
 
-        return new Request(context, uri.toASCIIString(), params, session, cgiData);
+        return new Request(context, uriText, params, session, cgiData);
     }
 
-    URI buildURI(final String path) {
+    private URI buildURI(final String path) {
         Objects.requireNonNull(path);
 
         final String urlBase = mantaConfig.getMantaURL();
@@ -74,12 +95,12 @@ public class HoneyBadgerRequestFactory {
         return URI.create(uriString);
     }
 
-    Context buildContext(@Nullable final Map<String, Object> additionalContext,
-                         @Nullable final ExceptionContext exceptionContext) {
+    private Context buildContext(@Nullable final Map<String, ?> additionalContext,
+                                 @Nullable final ExceptionContext exceptionContext) {
         final Context context = new Context().setUsername(mantaConfig.getMantaUser());
 
         if (additionalContext != null) {
-            for (Map.Entry<String, Object> entry : additionalContext.entrySet()) {
+            for (Map.Entry<String, ?> entry : additionalContext.entrySet()) {
                 context.put(entry.getKey(), Objects.toString(entry.getValue()));
             }
         }

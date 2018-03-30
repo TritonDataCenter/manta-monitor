@@ -8,12 +8,12 @@
 package com.joyent.manta.monitor.commands;
 
 import com.joyent.manta.monitor.MantaOperationContext;
-import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
+import org.apache.commons.chain.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface MantaOperationCommand extends Command {
+public interface MantaOperationCommand extends Filter {
     Logger LOG = LoggerFactory.getLogger(MantaOperationCommand.class);
 
     @Override
@@ -29,4 +29,16 @@ public interface MantaOperationCommand extends Command {
     }
 
     boolean execute(MantaOperationContext context) throws Exception;
+
+    @SuppressWarnings("unchecked")
+    @Override
+    default boolean postprocess(Context context, Exception exception) {
+        if (exception == null) {
+            return CONTINUE_PROCESSING;
+        }
+
+        context.put(MantaOperationContext.EXCEPTION_KEY, exception);
+
+        return PROCESSING_COMPLETE;
+    }
 }

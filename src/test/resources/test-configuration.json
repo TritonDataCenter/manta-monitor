@@ -3,7 +3,9 @@
     {
       "chainClassName":"com.joyent.manta.monitor.chains.FileUploadGetDeleteChain",
       "name":"simple-put",
-      "threads":5
+      "threads":5,
+      "minFileSize":4096,
+      "maxFileSize":65536
     }
   ]
 }

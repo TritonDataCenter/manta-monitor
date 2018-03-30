@@ -32,10 +32,8 @@ public class PutFileCommand implements MantaOperationCommand {
         final File file = context.getTestFile().toFile();
 
         try {
-            final MantaHttpHeaders headers = new MantaHttpHeaders();
-            headers.setContentType("text/plain; charset=UTF-8");
-            final MantaMetadata metadata = new MantaMetadata();
-            metadata.put("m-sha256-checksum", context.getTestFileChecksumAsString());
+            final MantaHttpHeaders headers = buildHeaders();
+            final MantaMetadata metadata = buildMetadata(context);
 
             /* Record the latencies per PUT operation so that we can act upon
              * pathological latency numbers. */
@@ -53,14 +51,26 @@ public class PutFileCommand implements MantaOperationCommand {
         return CONTINUE_PROCESSING;
     }
 
-    private static String generateFilePath(final  MantaOperationContext context) {
+    protected static MantaHttpHeaders buildHeaders() {
+        final MantaHttpHeaders headers = new MantaHttpHeaders();
+        headers.setContentType("text/plain; charset=UTF-8");
+        return headers;
+    }
+
+    protected static MantaMetadata buildMetadata(final MantaOperationContext context) {
+        final MantaMetadata metadata = new MantaMetadata();
+        metadata.put("m-sha256-checksum", context.getTestFileChecksumAsString());
+        return metadata;
+    }
+
+    protected static String generateFilePath(final  MantaOperationContext context) {
         final byte[] checksum = context.getTestFileChecksum();
         final String dir = context.getFilePathGenerationFunction().apply(checksum);
 
         return dir + context.getTestFileChecksumAsString() + ".txt";
     }
 
-    private static Integer parseResponseTime(final MantaHttpHeaders headers) {
+    protected static Integer parseResponseTime(final MantaHttpHeaders headers) {
         final String responseTimeAsString = Objects.toString(headers.get("x-response-time"));
 
         if (StringUtils.isBlank(responseTimeAsString)) {

@@ -10,6 +10,7 @@ package com.joyent.manta.monitor;
 import com.joyent.manta.client.MantaClient;
 import org.apache.commons.chain.Context;
 import org.apache.commons.codec.binary.Hex;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -19,17 +20,20 @@ import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class MantaOperationContext extends ConcurrentHashMap implements Context {
-    private static final String MANTA_CLIENT_KEY = "mantaClient";
-    private static final String MIN_FILE_SIZE_KEY = "minFileSize";
-    private static final String MAX_FILE_SIZE_KEY = "maxFileSize";
-    private static final String FILE_PATH_GEN_FUNC_KEY = "filePathGenerationFunction";
-    private static final String FILE_PATH_KEY = "filePath";
-    private static final String TEST_FILE_KEY = "testFile";
-    private static final String TEST_FILE_CHECKSUM_KEY = "testFileChecksum";
-    private static final String TEST_FILE_CHECKSUM_AS_STRING_KEY = "testFileChecksumString";
-    private static final String RESPONSE_TIMES_KEY = "responseTime";
+    private static final long serialVersionUID = -81700974895811279L;
+
+    public static final String MANTA_CLIENT_KEY = "mantaClient";
+    public static final String MIN_FILE_SIZE_KEY = "minFileSize";
+    public static final String MAX_FILE_SIZE_KEY = "maxFileSize";
+    public static final String FILE_PATH_GEN_FUNC_KEY = "filePathGenerationFunction";
+    public static final String FILE_PATH_KEY = "filePath";
+    public static final String TEST_FILE_KEY = "testFile";
+    public static final String TEST_FILE_CHECKSUM_KEY = "testFileChecksum";
+    public static final String TEST_FILE_CHECKSUM_AS_STRING_KEY = "testFileChecksumString";
+    public static final String RESPONSE_TIMES_KEY = "responseTime";
+    public static final String EXCEPTION_KEY = "exception";
 
     public MantaOperationContext() {
         super();
@@ -112,5 +116,15 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
 
     public Map<UUID, Integer> getResponseTimes() {
         return (Map<UUID, Integer>)get(RESPONSE_TIMES_KEY);
+    }
+
+    @Nullable
+    public Exception getException() {
+        return (Exception)get(EXCEPTION_KEY);
+    }
+
+    public MantaOperationContext setException(final Exception exception) {
+        put(EXCEPTION_KEY, exception);
+        return this;
     }
 }

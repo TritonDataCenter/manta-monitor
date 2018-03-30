@@ -11,6 +11,8 @@ import org.apache.commons.lang3.exception.ContextedRuntimeException;
 import org.apache.commons.lang3.exception.ExceptionContext;
 
 public class MantaOperationException extends ContextedRuntimeException {
+    private static final long serialVersionUID = -1269054951271990255L;
+
     public MantaOperationException() {
     }
 

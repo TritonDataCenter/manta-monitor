@@ -48,6 +48,8 @@ public class Application {
             System.exit(1);
         }
 
+        LOG.info("Starting Manta Monitor");
+
         final URI configUri = Objects.requireNonNull(parseConfigFileURI(args[0]));
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
@@ -79,10 +81,11 @@ public class Application {
         for (Runner runner : configuration.getTestRunners()) {
             try {
                 @SuppressWarnings("unchecked")
-                final MantaOperationsChain chain = (MantaOperationsChain)
-                        injector.getInstance(Class.forName(runner.getChainClassName()));
-                ChainRunner chainRunner = new ChainRunner(chain, runner.getName(),
-                        runner.getThreads(), client, UNCAUGHT_EXCEPTION_HANDLER);
+                Class<MantaOperationsChain> chainClass =
+                        (Class<MantaOperationsChain>)Class.forName(runner.getChainClassName());
+                MantaOperationsChain chain = injector.getInstance(chainClass);
+                ChainRunner chainRunner = new ChainRunner(chain, runner,
+                        client, UNCAUGHT_EXCEPTION_HANDLER);
                 runningChains.add(chainRunner);
                 chainRunner.start();
             } catch (ClassNotFoundException e) {

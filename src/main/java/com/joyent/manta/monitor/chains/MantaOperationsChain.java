@@ -8,6 +8,7 @@
 package com.joyent.manta.monitor.chains;
 
 import com.joyent.manta.exception.MantaClientHttpResponseException;
+import com.joyent.manta.http.MantaHttpHeaders;
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.MantaOperationContext;
 import com.joyent.manta.monitor.MantaOperationException;
@@ -15,10 +16,12 @@ import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import io.honeybadger.reporter.NoticeReporter;
 import io.honeybadger.reporter.dto.Request;
 import org.apache.commons.chain.impl.ChainBase;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.Collection;
 
 public class MantaOperationsChain extends ChainBase {
@@ -35,26 +38,62 @@ public class MantaOperationsChain extends ChainBase {
     }
 
     public void execute(final MantaOperationContext context) {
-        try {
-            super.execute(context);
-        } catch (MantaOperationException e) {
-            final Throwable cause = e.getCause();
-            final Request request;
+        Throwable exception;
 
-            if (cause instanceof MantaClientHttpResponseException) {
-                MantaClientHttpResponseException responseException = (MantaClientHttpResponseException)cause;
-                request = requestFactory.build(e.getPath(), responseException.getHeaders(), responseException);
-            } else if (cause instanceof ExceptionContext) {
-                ExceptionContext exceptionContext = (ExceptionContext)cause;
-                request = requestFactory.build(e.getPath(), null, exceptionContext);
-            } else {
-                request = requestFactory.build(e.getPath());
+        try {
+            LOG.info("{} starting", getClass().getSimpleName());
+            super.execute(context);
+            exception = context.getException();
+        } catch (Exception e) {
+            exception = e;
+        } finally {
+            LOG.info("{} finished", getClass().getSimpleName());
+        }
+
+        if (exception == null) {
+            return;
+        }
+
+        Request request = null;
+        String path = null;
+        MantaHttpHeaders mantaHeaders = null;
+
+        if (exception instanceof MantaOperationException) {
+            final MantaOperationException moe = (MantaOperationException) exception;
+            exception = moe.getCause();
+            path = moe.getPath();
+        }
+
+        if (exception instanceof MantaClientHttpResponseException) {
+            MantaClientHttpResponseException re = (MantaClientHttpResponseException)exception;
+            mantaHeaders = re.getHeaders();
+        }
+
+        if (exception instanceof ExceptionContext) {
+            ExceptionContext exceptionContext = (ExceptionContext) exception;
+
+            if (path == null && exceptionContext.getContextLabels().contains("path")) {
+                path = exceptionContext.getFirstContextValue("path").toString();
+            } else if (path == null && exceptionContext.getContextLabels().contains("requestURL")) {
+                final Object requestURL = exceptionContext.getFirstContextValue("requestURL");
+
+                try {
+                    URI uri = URI.create(requestURL.toString());
+                    path = uri.getPath();
+                } catch (IllegalArgumentException | NullPointerException uriE) {
+                    LOG.error("Error parsing URI: {}", requestURL);
+                }
             }
 
-            reportAndLog(cause, request);
-        } catch (Exception e) {
-            reportAndLog(e, null);
+            String message = StringUtils.substringBefore(exception.getMessage(),
+                    "Exception Context:");
+            exceptionContext.setContextValue("actualMessage", message);
+            request = requestFactory.build(path, mantaHeaders, exceptionContext);
+        } else if (path != null) {
+            request = requestFactory.build(path);
         }
+
+        reportAndLog(exception, request);
     }
 
     private void reportAndLog(final Throwable throwable, final Request request) {

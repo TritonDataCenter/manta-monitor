@@ -20,11 +20,15 @@ public class Runner {
     private String chainClassName;
     private String name;
     private int threads;
+    private int minFileSize;
+    private int maxFileSize;
 
     @JsonCreator
     public Runner(@JsonProperty("chainClassName") final String chainClassName,
                   @JsonProperty("name") final String name,
-                  @JsonProperty("threads") final int threads) {
+                  @JsonProperty("threads") final int threads,
+                  @JsonProperty("minFileSize") final int minFileSize,
+                  @JsonProperty("maxFileSize") final int maxFileSize) {
         this.chainClassName = chainClassName;
         this.name = name;
         this.threads = threads;
@@ -57,6 +61,24 @@ public class Runner {
         return this;
     }
 
+    public int getMinFileSize() {
+        return minFileSize;
+    }
+
+    public Runner setMinFileSize(final int minFileSize) {
+        this.minFileSize = minFileSize;
+        return this;
+    }
+
+    public int getMaxFileSize() {
+        return maxFileSize;
+    }
+
+    public Runner setMaxFileSize(final int maxFileSize) {
+        this.maxFileSize = maxFileSize;
+        return this;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -70,13 +92,14 @@ public class Runner {
         final Runner runner = (Runner) o;
         return threads == runner.threads
                 && Objects.equals(chainClassName, runner.chainClassName)
-                && Objects.equals(name, runner.name);
+                && Objects.equals(name, runner.name)
+                && Objects.equals(minFileSize, runner.minFileSize)
+                && Objects.equals(maxFileSize, runner.maxFileSize);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(chainClassName, name, threads);
+        return Objects.hash(chainClassName, name, threads, minFileSize, maxFileSize);
     }
 
     @Override
@@ -85,6 +108,8 @@ public class Runner {
                 .append("chainClassName", chainClassName)
                 .append("name", name)
                 .append("threads", threads)
+                .append("minFileSize", minFileSize)
+                .append("maxFileSize", maxFileSize)
                 .toString();
     }
 }
