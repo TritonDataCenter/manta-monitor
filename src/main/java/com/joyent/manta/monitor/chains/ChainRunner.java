@@ -67,10 +67,14 @@ public class ChainRunner {
         LOG.info("Starting {} threads to run [{}]", threads, name);
 
         final Callable<Void> callable = () -> {
-            final MantaOperationContext context = new MantaOperationContext();
-
             while (running) {
-                resetContext(context);
+                final MantaOperationContext context = new MantaOperationContext()
+                        .setMantaClient(client)
+                        .setFilePathGenerationFunction(pathGenerator)
+                        .setMinFileSize(runnerConfig.getMinFileSize())
+                        .setMaxFileSize(runnerConfig.getMaxFileSize())
+                        .setTestBaseDir(baseDir);
+
                 chain.execute(context);
             }
 
@@ -94,16 +98,6 @@ public class ChainRunner {
 
     public boolean isRunning() {
         return running;
-    }
-
-    private void resetContext(MantaOperationContext context) {
-        context.clear();
-
-        context.setMantaClient(client)
-               .setFilePathGenerationFunction(pathGenerator)
-               .setMinFileSize(runnerConfig.getMinFileSize())
-               .setMaxFileSize(runnerConfig.getMaxFileSize())
-               .setTestBaseDir(baseDir);
     }
 
     private String buildBaseDir() {
