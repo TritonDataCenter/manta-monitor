@@ -7,14 +7,14 @@
       "threads":1,
       "minFileSize":4096,
       "maxFileSize":65536
-    }
+    },
     // Configuration for a MPU
-//    {
-//      "chainClassName":"com.joyent.manta.monitor.chains.FileMultipartUploadGetDeleteChain",
-//      "name":"mpu-put",
-//      "threads":1,
-//      "minFileSize":10485760,
-//      "maxFileSize":104857600
-//    }
+    {
+      "chainClassName":"com.joyent.manta.monitor.chains.FileMultipartUploadGetDeleteChain",
+      "name":"mpu-put",
+      "threads":1,
+      "minFileSize":10485760,
+      "maxFileSize":104857600
+    }
   ]
 }
