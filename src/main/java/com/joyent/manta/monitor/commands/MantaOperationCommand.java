@@ -13,6 +13,11 @@ import org.apache.commons.chain.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Interface in which all Manta specific commands inherit from. This interface
+ * extends the {@link Filter} API such that it natively supports
+ * {@link MantaOperationContext} without additional casting.
+ */
 public interface MantaOperationCommand extends Filter {
     Logger LOG = LoggerFactory.getLogger(MantaOperationCommand.class);
 

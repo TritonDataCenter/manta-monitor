@@ -9,9 +9,11 @@ package com.joyent.manta.monitor.chains;
 
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.InstanceMetadata;
+import com.joyent.manta.monitor.commands.CleanupDirsCommand;
 import com.joyent.manta.monitor.commands.DeleteFileCommand;
 import com.joyent.manta.monitor.commands.GenerateFileCommand;
 import com.joyent.manta.monitor.commands.GetFileCommand;
+import com.joyent.manta.monitor.commands.HeadFileCommand;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import com.joyent.manta.monitor.commands.MkdirCommand;
 import com.joyent.manta.monitor.commands.PutFileCommand;
@@ -31,8 +33,10 @@ public class FileUploadGetDeleteChain extends MantaOperationsChain {
             GenerateFileCommand.INSTANCE,
             MkdirCommand.INSTANCE,
             PutFileCommand.INSTANCE,
+            HeadFileCommand.INSTANCE,
             GetFileCommand.INSTANCE,
-            DeleteFileCommand.INSTANCE);
+            DeleteFileCommand.INSTANCE,
+            CleanupDirsCommand.INSTANCE);
 
     @Inject
     public FileUploadGetDeleteChain(final NoticeReporter reporter,

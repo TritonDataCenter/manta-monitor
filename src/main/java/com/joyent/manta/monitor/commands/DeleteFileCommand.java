@@ -10,6 +10,10 @@ package com.joyent.manta.monitor.commands;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.MantaOperationContext;
 
+/**
+ * {@link org.apache.commons.chain.Command} implementation that deletes the
+ * file that was uploaded to Manta.
+ */
 public class DeleteFileCommand implements MantaOperationCommand {
     public static final DeleteFileCommand INSTANCE = new DeleteFileCommand();
 
@@ -20,6 +24,6 @@ public class DeleteFileCommand implements MantaOperationCommand {
 
         client.delete(filePath);
 
-        return PROCESSING_COMPLETE;
+        return CONTINUE_PROCESSING;
     }
 }

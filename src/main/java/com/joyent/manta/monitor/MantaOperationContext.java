@@ -30,6 +30,7 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public static final String FILE_PATH_GEN_FUNC_KEY = "filePathGenerationFunction";
     public static final String FILE_PATH_KEY = "filePath";
     public static final String FILE_SIZE_KEY = "fileSize";
+    public static final String TEST_BASE_DIR_KEY = "baseDir";
     public static final String TEST_FILE_KEY = "testFile";
     public static final String TEST_FILE_CHECKSUM_KEY = "testFileChecksum";
     public static final String TEST_FILE_CHECKSUM_AS_STRING_KEY = "testFileChecksumString";
@@ -92,6 +93,15 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
         return this;
     }
 
+    public String getTestBaseDir() {
+        return (String)get(TEST_BASE_DIR_KEY);
+    }
+
+    public MantaOperationContext setTestBaseDir(final String baseDir) {
+        put(TEST_BASE_DIR_KEY, baseDir);
+        return this;
+    }
+
     public Long getTestFileSize() {
         return (Long)get(FILE_SIZE_KEY);
     }
@@ -99,7 +109,7 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public MantaOperationContext setTestFileSize(final long size) {
         put(FILE_SIZE_KEY, size);
         return this;
-    }
+        }
 
     public Path getTestFile() {
         return (Path)get(TEST_FILE_KEY);

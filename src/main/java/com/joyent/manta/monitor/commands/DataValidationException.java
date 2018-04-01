@@ -14,6 +14,8 @@ import org.apache.commons.lang3.exception.ExceptionContext;
  * Exception thrown when data in Manta does not match expectations.
  */
 public class DataValidationException extends ContextedRuntimeException {
+    private static final long serialVersionUID = -3627011244809868081L;
+
     public DataValidationException() {
     }
 

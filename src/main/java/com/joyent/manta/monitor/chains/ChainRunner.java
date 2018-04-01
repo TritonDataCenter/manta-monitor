@@ -14,6 +14,7 @@ import com.joyent.manta.monitor.functions.GeneratePathBasedOnSHA256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,6 +32,7 @@ public class ChainRunner {
     private final ExecutorService executorService;
     private final GeneratePathBasedOnSHA256 pathGenerator;
     private final Runner runnerConfig;
+    private final String baseDir;
 
     private volatile boolean running = true;
 
@@ -43,9 +45,8 @@ public class ChainRunner {
         this.threads = runnerConfig.getThreads();
         this.client = client;
         this.runnerConfig = runnerConfig;
-        this.pathGenerator = new GeneratePathBasedOnSHA256(
-                client.getContext().getMantaHomeDirectory()
-                        + SEPARATOR + "stor" + SEPARATOR + "manta-monitor-data");
+        this.baseDir = buildBaseDir();
+        this.pathGenerator = new GeneratePathBasedOnSHA256(baseDir);
 
         final ThreadGroup threadGroup = new ThreadGroup(name);
         threadGroup.setDaemon(true);
@@ -101,6 +102,13 @@ public class ChainRunner {
         context.setMantaClient(client)
                .setFilePathGenerationFunction(pathGenerator)
                .setMinFileSize(runnerConfig.getMinFileSize())
-               .setMaxFileSize(runnerConfig.getMaxFileSize());
+               .setMaxFileSize(runnerConfig.getMaxFileSize())
+               .setTestBaseDir(baseDir);
+    }
+
+    private String buildBaseDir() {
+        return client.getContext().getMantaHomeDirectory()
+                + SEPARATOR + "stor" + SEPARATOR + "manta-monitor-data"
+                + SEPARATOR + UUID.randomUUID();
     }
 }
