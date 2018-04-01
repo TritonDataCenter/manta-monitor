@@ -38,7 +38,11 @@ public class CleanupDirsCommand implements MantaOperationCommand {
             client.delete(dir);
         }
 
-        client.delete(baseDir);
+        if (client.isDirectoryEmpty(baseDir)) {
+            client.delete(baseDir);
+        } else {
+            client.deleteRecursive(baseDir);
+        }
 
         return PROCESSING_COMPLETE;
     }
