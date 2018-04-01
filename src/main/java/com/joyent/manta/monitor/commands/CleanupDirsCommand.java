@@ -30,12 +30,12 @@ public class CleanupDirsCommand implements MantaOperationCommand {
         final String[] dirs = StringUtils.split(lowestDirWithoutBase, SEPARATOR);
 
         for (int i = dirs.length - 1; i >= 0; i--) {
-            String dir = baseDir;
+            StringBuilder dir = new StringBuilder(baseDir);
             for (int j = 0; j <= i; j++) {
-                dir += SEPARATOR + dirs[j];
+                dir.append(SEPARATOR).append(dirs[j]);
             }
 
-            client.delete(dir);
+            client.delete(dir.toString());
         }
 
         if (client.isDirectoryEmpty(baseDir)) {
