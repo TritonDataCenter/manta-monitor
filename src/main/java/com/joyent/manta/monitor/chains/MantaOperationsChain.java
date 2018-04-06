@@ -7,12 +7,10 @@
  */
 package com.joyent.manta.monitor.chains;
 
+import com.google.common.collect.ImmutableMap;
 import com.joyent.manta.exception.MantaClientHttpResponseException;
 import com.joyent.manta.http.MantaHttpHeaders;
-import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
-import com.joyent.manta.monitor.InstanceMetadata;
-import com.joyent.manta.monitor.MantaOperationContext;
-import com.joyent.manta.monitor.MantaOperationException;
+import com.joyent.manta.monitor.*;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import io.honeybadger.reporter.NoticeReporter;
 import io.honeybadger.reporter.dto.Request;
@@ -20,21 +18,27 @@ import org.apache.commons.chain.impl.ChainBase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionContext;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class MantaOperationsChain extends ChainBase {
     private static final Logger LOG = LoggerFactory.getLogger(MantaOperationsChain.class);
     private final NoticeReporter reporter;
-    private final HoneyBadgerRequestFactory requestFactory;
+    private final ThrowableProcessor throwableProcessor;
     private final InstanceMetadata metadata;
 
+    private static final Map<Integer, String> STATUS_CODE_TO_TAG = ImmutableMap.of(
+        HttpStatus.SC_INTERNAL_SERVER_ERROR, "internal-server-error",
+        HttpStatus.SC_BAD_GATEWAY, "bad-gateway",
+        HttpStatus.SC_GATEWAY_TIMEOUT, "gateway-timeout",
+        HttpStatus.SC_INSUFFICIENT_STORAGE, "insufficient-storage",
+        HttpStatus.SC_SERVICE_UNAVAILABLE, "service-unavailable"
+    );
 
     public MantaOperationsChain(final Collection<? super MantaOperationCommand> commands,
                                 final NoticeReporter reporter,
@@ -42,90 +46,86 @@ public class MantaOperationsChain extends ChainBase {
                                 final InstanceMetadata metadata) {
         super(commands);
         this.reporter = reporter;
-        this.requestFactory = requestFactory;
         this.metadata = metadata;
+        this.throwableProcessor = new ThrowableProcessor(requestFactory);
     }
 
     public void execute(final MantaOperationContext context) {
-        Throwable exception;
+        Throwable throwable;
 
         try {
             LOG.info("{} starting", getClass().getSimpleName());
             super.execute(context);
-            exception = context.getException();
+            throwable = context.getException();
         } catch (Exception e) {
-            exception = e;
+            throwable = e;
         } finally {
             LOG.info("{} finished", getClass().getSimpleName());
         }
 
-        if (exception == null) {
+        if (throwable == null) {
             return;
         }
 
-        Request request;
-        String path = null;
-        MantaHttpHeaders mantaHeaders = null;
+        final ThrowableProcessor.ProcessedResults results =
+                throwableProcessor.process(throwable);
 
-        if (exception instanceof MantaOperationException) {
-            final MantaOperationException moe = (MantaOperationException) exception;
-            exception = moe.getCause();
-            path = moe.getPath();
-        }
-
-        if (exception instanceof MantaClientHttpResponseException) {
-            MantaClientHttpResponseException re = (MantaClientHttpResponseException)exception;
-            mantaHeaders = re.getHeaders();
-        }
-
-        if (exception instanceof ExceptionContext) {
-            ExceptionContext exceptionContext = (ExceptionContext) exception;
-
-            if (path == null && exceptionContext.getContextLabels().contains("path")) {
-                path = exceptionContext.getFirstContextValue("path").toString();
-            } else if (path == null && exceptionContext.getContextLabels().contains("requestURL")) {
-                final Object requestURL = exceptionContext.getFirstContextValue("requestURL");
-
-                try {
-                    URI uri = URI.create(requestURL.toString());
-                    path = uri.getPath();
-                } catch (IllegalArgumentException | NullPointerException uriE) {
-                    LOG.error("Error parsing URI: {}", requestURL);
-                }
-            }
-
-            String message = StringUtils.substringBefore(exception.getMessage(),
-                    "Exception Context:");
-            exceptionContext.setContextValue("actualMessage", message);
-            request = requestFactory.build(path, mantaHeaders, exceptionContext);
-        } else {
-            request = requestFactory.build(path);
-        }
-
-        reportAndLog(exception, request);
+        reportAndLog(results);
     }
 
-    private String extractMessageAndAddTags(final Throwable throwable, final Set<String> tags) {
-        final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+    private String extractMessageAndAddTags(final ThrowableProcessor.ProcessedResults results,
+                                            final Set<String> tags) {
+        final Throwable rootCause = results.rootCause;
 
         if (rootCause != null && SocketTimeoutException.class.equals(rootCause.getClass())) {
             tags.add("socket-timeout");
             return rootCause.getMessage();
         }
 
-        return throwable.getMessage();
+        for (Throwable t : results.throwableAndCauses) {
+            if (t instanceof MantaClientHttpResponseException) {
+                MantaClientHttpResponseException mchre = (MantaClientHttpResponseException)t;
+
+                final int statusCode = mchre.getStatusCode();
+                final String tag = STATUS_CODE_TO_TAG.get(statusCode);
+
+                if (tag != null) {
+                    tags.add(tag);
+                }
+            }
+        }
+
+        return parseMessage(results.throwable);
     }
 
-    private void reportAndLog(final Throwable throwable, final Request request) {
+    /**
+     * Parses the exception message and strips out redundant context information
+     * if we are already sending the information as part of the error context.
+     *
+     * @param throwable throwable to parse message from
+     * @return string containing the throwable's error message
+     */
+    private static String parseMessage(final Throwable throwable) {
+        if (throwable instanceof ExceptionContext) {
+            final String msg = throwable.getMessage();
+
+            return StringUtils.substringBefore(msg,
+                    "Exception Context:").trim();
+        } else {
+            return throwable.getMessage();
+        }
+    }
+
+    private void reportAndLog(final ThrowableProcessor.ProcessedResults results) {
         final Set<String> tags = new LinkedHashSet<>(metadata.asTagSet());
-        final String message = extractMessageAndAddTags(throwable, tags);
+        final String message = extractMessageAndAddTags(results, tags);
 
         try {
-            reporter.reportError(throwable, request, message, tags);
+            reporter.reportError(results.throwable, results.request, message, tags);
         } catch (RuntimeException re) {
             LOG.error("Error logging exception to Honeybadger.io", re);
         }
 
-        LOG.error("Error running operation", throwable);
+        LOG.error("Error running operation", results.throwable);
     }
 }

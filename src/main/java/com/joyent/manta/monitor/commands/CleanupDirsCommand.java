@@ -8,9 +8,16 @@
 package com.joyent.manta.monitor.commands;
 
 import com.joyent.manta.client.MantaClient;
+import com.joyent.manta.exception.MantaIOException;
+import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
+import com.joyent.manta.monitor.MantaMonitorModule;
 import com.joyent.manta.monitor.MantaOperationContext;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.UncheckedIOException;
 
 import static com.joyent.manta.client.MantaClient.SEPARATOR;
 
@@ -38,11 +45,7 @@ public class CleanupDirsCommand implements MantaOperationCommand {
             client.delete(dir.toString());
         }
 
-        if (client.isDirectoryEmpty(baseDir)) {
-            client.delete(baseDir);
-        } else {
-            client.deleteRecursive(baseDir);
-        }
+        client.delete(baseDir);
 
         return PROCESSING_COMPLETE;
     }

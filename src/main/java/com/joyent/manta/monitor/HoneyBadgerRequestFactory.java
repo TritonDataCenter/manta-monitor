@@ -7,22 +7,21 @@
  */
 package com.joyent.manta.monitor;
 
+import com.google.common.collect.ImmutableSet;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.http.MantaHttpHeaders;
-import io.honeybadger.reporter.dto.CgiData;
-import io.honeybadger.reporter.dto.Context;
-import io.honeybadger.reporter.dto.Params;
-import io.honeybadger.reporter.dto.Request;
-import io.honeybadger.reporter.dto.Session;
+import io.honeybadger.reporter.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionContext;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.net.URI;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class HoneyBadgerRequestFactory {
     private final com.joyent.manta.config.ConfigContext mantaConfig;
@@ -38,18 +37,9 @@ public class HoneyBadgerRequestFactory {
         this.hbConfig = hbConfig;
     }
 
-    public Request build(@Nullable final String path) {
-        return build(path, null, null);
-    }
-
-    public Request build(@Nullable final String path,
-                         @Nullable final ExceptionContext exceptionContext) {
-        return build(path, null, exceptionContext);
-    }
-
     public Request build(@Nullable final String path,
                          @Nullable final MantaHttpHeaders headers,
-                         @Nullable final ExceptionContext exceptionContext) {
+                         @Nullable final Throwable throwable) {
         final URI uri;
 
         if (path == null) {
@@ -58,12 +48,12 @@ public class HoneyBadgerRequestFactory {
             uri = buildURI(path).normalize();
         }
 
-        return build(uri, headers, exceptionContext);
+        return build(uri, headers, throwable);
     }
 
     public Request build(@Nullable final URI uri,
                          @Nullable final MantaHttpHeaders headers,
-                         @Nullable final ExceptionContext exceptionContext) {
+                         @Nullable final Throwable throwable) {
         final String uriText;
         if (uri != null) {
             uriText = uri.normalize().toASCIIString();
@@ -74,13 +64,32 @@ public class HoneyBadgerRequestFactory {
         final Params params = new Params(hbConfig.getExcludedParams());
         final Session session = new Session();
         final CgiData cgiData = new CgiData();
+
+        if (uri != null) {
+            cgiData.setServerName(uri.getHost());
+
+            if (uri.getPort() > 0) {
+                cgiData.setServerPort(uri.getPort());
+            } else if (uri.getScheme().equals("http")) {
+                cgiData.setServerPort(80);
+            } else if (uri.getScheme().equals("https")) {
+                cgiData.setServerPort(443);
+            }
+        }
         final Context context;
 
         if (headers != null) {
             Map<String, Object> missing = cgiData.addFromHttpHeaders(headers, Object::toString);
-            context = buildContext(missing, exceptionContext);
+
+            context = buildContext(missing, throwable);
         } else {
-            context = buildContext(null, exceptionContext);
+            context = buildContext(null, throwable);
+        }
+
+        final String requestMethod = context.get("requestMethod");
+
+        if (isNotBlank(requestMethod)) {
+            cgiData.setRequestMethod(requestMethod);
         }
 
         return new Request(context, uriText, params, session, cgiData);
@@ -99,7 +108,7 @@ public class HoneyBadgerRequestFactory {
     }
 
     private Context buildContext(@Nullable final Map<String, ?> additionalContext,
-                                 @Nullable final ExceptionContext exceptionContext) {
+                                 @Nullable final Throwable throwable) {
         final Context context = new Context().setUsername(mantaConfig.getMantaUser());
 
         if (metadata != null) {
@@ -114,12 +123,39 @@ public class HoneyBadgerRequestFactory {
             }
         }
 
-        if (exceptionContext != null && exceptionContext.getContextEntries() != null) {
-            for (Pair<String, Object> pair : exceptionContext.getContextEntries()) {
+        for (ExceptionContext ec : aggregateAllExceptionContextsWithinCauses(throwable)) {
+            for (Pair<String, Object> pair : ec.getContextEntries()) {
                 context.put(pair.getKey(), Objects.toString(pair.getValue()));
             }
         }
 
         return context;
+    }
+
+    /**
+     * Walks through each exception's causes and determines if it is an instance
+     * of {@link ExceptionContext}. If it is, it is then returned as a element
+     * in a set.
+     *
+     * @param throwable root exception context to parse for causes
+     * @return a set of all causes with contexts in the order of root to highest
+     */
+    private static Set<ExceptionContext> aggregateAllExceptionContextsWithinCauses(
+            final Throwable throwable) {
+        if (throwable == null) {
+            return Collections.emptySet();
+        }
+
+        final List<Throwable> causes = ExceptionUtils.getThrowableList(throwable);
+        Collections.reverse(causes);
+
+        final ImmutableSet.Builder<ExceptionContext> contexted = new ImmutableSet.Builder<>();
+        for (Throwable t : causes) {
+            if (t instanceof ExceptionContext) {
+                contexted.add((ExceptionContext) t);
+            }
+        }
+
+        return contexted.build();
     }
 }

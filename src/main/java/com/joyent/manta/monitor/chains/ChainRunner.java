@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 import static com.joyent.manta.client.MantaClient.SEPARATOR;
 
@@ -30,9 +31,7 @@ public class ChainRunner {
     private final int threads;
     private final MantaClient client;
     private final ExecutorService executorService;
-    private final GeneratePathBasedOnSHA256 pathGenerator;
     private final Runner runnerConfig;
-    private final String baseDir;
 
     private volatile boolean running = true;
 
@@ -45,8 +44,6 @@ public class ChainRunner {
         this.threads = runnerConfig.getThreads();
         this.client = client;
         this.runnerConfig = runnerConfig;
-        this.baseDir = buildBaseDir();
-        this.pathGenerator = new GeneratePathBasedOnSHA256(baseDir);
 
         final ThreadGroup threadGroup = new ThreadGroup(name);
         threadGroup.setDaemon(true);
@@ -68,6 +65,8 @@ public class ChainRunner {
 
         final Callable<Void> callable = () -> {
             while (running) {
+                final String baseDir = buildBaseDir();
+                final Function<byte[], String> pathGenerator = new GeneratePathBasedOnSHA256(baseDir);
                 final MantaOperationContext context = new MantaOperationContext()
                         .setMantaClient(client)
                         .setFilePathGenerationFunction(pathGenerator)
