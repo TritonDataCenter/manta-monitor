@@ -1,36 +1,131 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor.chains;
 
+import com.google.common.collect.ImmutableMap;
+import com.joyent.manta.exception.MantaClientHttpResponseException;
+import com.joyent.manta.http.MantaHttpHeaders;
+import com.joyent.manta.monitor.*;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
-import com.joyent.manta.monitor.MantaOperationContext;
-import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
+import io.honeybadger.reporter.NoticeReporter;
+import io.honeybadger.reporter.dto.Request;
 import org.apache.commons.chain.impl.ChainBase;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionContext;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.util.*;
 
 public class MantaOperationsChain extends ChainBase {
     private static final Logger LOG = LoggerFactory.getLogger(MantaOperationsChain.class);
+    private final NoticeReporter reporter;
+    private final ThrowableProcessor throwableProcessor;
+    private final InstanceMetadata metadata;
 
-    private final Thread.UncaughtExceptionHandler exceptionHandler;
+    private static final Map<Integer, String> STATUS_CODE_TO_TAG = ImmutableMap.of(
+        HttpStatus.SC_INTERNAL_SERVER_ERROR, "internal-server-error",
+        HttpStatus.SC_BAD_GATEWAY, "bad-gateway",
+        HttpStatus.SC_GATEWAY_TIMEOUT, "gateway-timeout",
+        HttpStatus.SC_INSUFFICIENT_STORAGE, "insufficient-storage",
+        HttpStatus.SC_SERVICE_UNAVAILABLE, "service-unavailable"
+    );
 
     public MantaOperationsChain(final Collection<? super MantaOperationCommand> commands,
-                                final Thread.UncaughtExceptionHandler exceptionHandler) {
+                                final NoticeReporter reporter,
+                                final HoneyBadgerRequestFactory requestFactory,
+                                final InstanceMetadata metadata) {
         super(commands);
-        this.exceptionHandler = exceptionHandler;
+        this.reporter = reporter;
+        this.metadata = metadata;
+        this.throwableProcessor = new ThrowableProcessor(requestFactory);
     }
 
     public void execute(final MantaOperationContext context) {
-        try {
-            super.execute(context);
-        } catch (Exception e) {
-            try {
-                exceptionHandler.uncaughtException(Thread.currentThread(), e);
-            } catch (RuntimeException re) {
-                LOG.error("Error logging exception to Honeybadger.io", re);
-            }
+        Throwable throwable;
 
-            LOG.error("Error running operation", e);
+        try {
+            LOG.info("{} starting", getClass().getSimpleName());
+            super.execute(context);
+            throwable = context.getException();
+        } catch (Exception e) {
+            throwable = e;
+        } finally {
+            LOG.info("{} finished", getClass().getSimpleName());
         }
+
+        if (throwable == null) {
+            return;
+        }
+
+        final ThrowableProcessor.ProcessedResults results =
+                throwableProcessor.process(throwable);
+
+        reportAndLog(results);
+    }
+
+    private String extractMessageAndAddTags(final ThrowableProcessor.ProcessedResults results,
+                                            final Set<String> tags) {
+        final Throwable rootCause = results.rootCause;
+
+        if (rootCause != null && SocketTimeoutException.class.equals(rootCause.getClass())) {
+            tags.add("socket-timeout");
+            return rootCause.getMessage();
+        }
+
+        for (Throwable t : results.throwableAndCauses) {
+            if (t instanceof MantaClientHttpResponseException) {
+                MantaClientHttpResponseException mchre = (MantaClientHttpResponseException)t;
+
+                final int statusCode = mchre.getStatusCode();
+                final String tag = STATUS_CODE_TO_TAG.get(statusCode);
+
+                if (tag != null) {
+                    tags.add(tag);
+                }
+            }
+        }
+
+        return parseMessage(results.throwable);
+    }
+
+    /**
+     * Parses the exception message and strips out redundant context information
+     * if we are already sending the information as part of the error context.
+     *
+     * @param throwable throwable to parse message from
+     * @return string containing the throwable's error message
+     */
+    private static String parseMessage(final Throwable throwable) {
+        if (throwable instanceof ExceptionContext) {
+            final String msg = throwable.getMessage();
+
+            return StringUtils.substringBefore(msg,
+                    "Exception Context:").trim();
+        } else {
+            return throwable.getMessage();
+        }
+    }
+
+    private void reportAndLog(final ThrowableProcessor.ProcessedResults results) {
+        final Set<String> tags = new LinkedHashSet<>(metadata.asTagSet());
+        final String message = extractMessageAndAddTags(results, tags);
+
+        try {
+            reporter.reportError(results.throwable, results.request, message, tags);
+        } catch (RuntimeException re) {
+            LOG.error("Error logging exception to Honeybadger.io", re);
+        }
+
+        LOG.error("Error running operation", results.throwable);
     }
 }

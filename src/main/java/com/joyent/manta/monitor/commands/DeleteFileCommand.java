@@ -1,8 +1,19 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor.commands;
 
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.MantaOperationContext;
 
+/**
+ * {@link org.apache.commons.chain.Command} implementation that deletes the
+ * file that was uploaded to Manta.
+ */
 public class DeleteFileCommand implements MantaOperationCommand {
     public static final DeleteFileCommand INSTANCE = new DeleteFileCommand();
 
@@ -13,6 +24,6 @@ public class DeleteFileCommand implements MantaOperationCommand {
 
         client.delete(filePath);
 
-        return PROCESSING_COMPLETE;
+        return CONTINUE_PROCESSING;
     }
 }

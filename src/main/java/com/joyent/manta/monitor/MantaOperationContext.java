@@ -1,8 +1,16 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor;
 
 import com.joyent.manta.client.MantaClient;
 import org.apache.commons.chain.Context;
 import org.apache.commons.codec.binary.Hex;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -12,17 +20,22 @@ import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class MantaOperationContext extends ConcurrentHashMap implements Context {
-    private static final String MANTA_CLIENT_KEY = "mantaClient";
-    private static final String MIN_FILE_SIZE_KEY = "minFileSize";
-    private static final String MAX_FILE_SIZE_KEY = "maxFileSize";
-    private static final String FILE_PATH_GEN_FUNC_KEY = "filePathGenerationFunction";
-    private static final String FILE_PATH_KEY = "filePath";
-    private static final String TEST_FILE_KEY = "testFile";
-    private static final String TEST_FILE_CHECKSUM_KEY = "testFileChecksum";
-    private static final String TEST_FILE_CHECKSUM_AS_STRING_KEY = "testFileChecksumString";
-    private static final String RESPONSE_TIMES_KEY = "responseTime";
+    private static final long serialVersionUID = -81700974895811279L;
+
+    public static final String MANTA_CLIENT_KEY = "mantaClient";
+    public static final String MIN_FILE_SIZE_KEY = "minFileSize";
+    public static final String MAX_FILE_SIZE_KEY = "maxFileSize";
+    public static final String FILE_PATH_GEN_FUNC_KEY = "filePathGenerationFunction";
+    public static final String FILE_PATH_KEY = "filePath";
+    public static final String FILE_SIZE_KEY = "fileSize";
+    public static final String TEST_BASE_DIR_KEY = "baseDir";
+    public static final String TEST_FILE_KEY = "testFile";
+    public static final String TEST_FILE_CHECKSUM_KEY = "testFileChecksum";
+    public static final String TEST_FILE_CHECKSUM_AS_STRING_KEY = "testFileChecksumString";
+    public static final String RESPONSE_TIMES_KEY = "responseTime";
+    public static final String EXCEPTION_KEY = "exception";
 
     public MantaOperationContext() {
         super();
@@ -43,11 +56,11 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
         put(MANTA_CLIENT_KEY, requireNonNull(mantaClient));
         return this;
     }
-    
+
     public Integer getMinFileSize() {
         return (Integer)get(MIN_FILE_SIZE_KEY);
     }
-    
+
     public MantaOperationContext setMinFileSize(final int minFileSize) {
         put(MIN_FILE_SIZE_KEY, minFileSize);
         return this;
@@ -80,6 +93,24 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
         return this;
     }
 
+    public String getTestBaseDir() {
+        return (String)get(TEST_BASE_DIR_KEY);
+    }
+
+    public MantaOperationContext setTestBaseDir(final String baseDir) {
+        put(TEST_BASE_DIR_KEY, baseDir);
+        return this;
+    }
+
+    public Long getTestFileSize() {
+        return (Long)get(FILE_SIZE_KEY);
+    }
+
+    public MantaOperationContext setTestFileSize(final long size) {
+        put(FILE_SIZE_KEY, size);
+        return this;
+        }
+
     public Path getTestFile() {
         return (Path)get(TEST_FILE_KEY);
     }
@@ -105,5 +136,15 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
 
     public Map<UUID, Integer> getResponseTimes() {
         return (Map<UUID, Integer>)get(RESPONSE_TIMES_KEY);
+    }
+
+    @Nullable
+    public Exception getException() {
+        return (Exception)get(EXCEPTION_KEY);
+    }
+
+    public MantaOperationContext setException(final Exception exception) {
+        put(EXCEPTION_KEY, exception);
+        return this;
     }
 }

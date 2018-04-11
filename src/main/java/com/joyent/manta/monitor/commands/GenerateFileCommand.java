@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor.commands;
 
 import com.joyent.manta.monitor.MantaOperationContext;
@@ -20,7 +27,9 @@ public class GenerateFileCommand implements MantaOperationCommand {
 
     @Override
     public boolean execute(final MantaOperationContext context) throws Exception {
-        final int filesize = generateFileSize(context);
+        final long filesize = generateFileSize(context);
+        context.setTestFileSize(filesize);
+
         final Path temp = Files.createTempFile(String.format("mput-%s-",
                 LocalDate.now().format(ISO_LOCAL_DATE)),
                 ".txt");
@@ -45,7 +54,7 @@ public class GenerateFileCommand implements MantaOperationCommand {
         return CONTINUE_PROCESSING;
     }
 
-    private static int generateFileSize(final MantaOperationContext context) {
+    private static long generateFileSize(final MantaOperationContext context) {
         final int min = context.getMinFileSize();
         final int max = context.getMaxFileSize();
 

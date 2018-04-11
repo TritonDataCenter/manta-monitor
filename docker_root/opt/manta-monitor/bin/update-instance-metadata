@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+# If we are on a LX Branded zone, populate the metadata
+if [ "$(uname -v)" == "BrandZ virtual linux" ]; then
+    echo "uuid=$(/native/usr/sbin/mdata-get sdc:uuid)" > ${INSTANCE_METADATA_PROPS_FILE}
+    echo "image_uuid=$(/native/usr/sbin/mdata-get sdc:image_uuid)" >> ${INSTANCE_METADATA_PROPS_FILE}
+    echo "alias=$(/native/usr/sbin/mdata-get sdc:alias)" >> ${INSTANCE_METADATA_PROPS_FILE}
+    echo "datacenter_name=$(/native/usr/sbin/mdata-get sdc:datacenter_name)" >> ${INSTANCE_METADATA_PROPS_FILE}
+    echo "owner_uuid=$(/native/usr/sbin/mdata-get sdc:owner_uuid)" >> ${INSTANCE_METADATA_PROPS_FILE}
+    echo "server_uuid=$(/native/usr/sbin/mdata-get sdc:server_uuid)" >> ${INSTANCE_METADATA_PROPS_FILE}
+    echo "pi_version=$(/native/usr/bin/uname -v)" >> ${INSTANCE_METADATA_PROPS_FILE}
+fi
