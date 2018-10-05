@@ -9,18 +9,14 @@ package com.joyent.manta.monitor.chains;
 
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.InstanceMetadata;
-import com.joyent.manta.monitor.commands.CleanupDirsCommand;
-import com.joyent.manta.monitor.commands.DeleteFileCommand;
-import com.joyent.manta.monitor.commands.GenerateFileCommand;
-import com.joyent.manta.monitor.commands.GetFileCommand;
-import com.joyent.manta.monitor.commands.HeadFileCommand;
-import com.joyent.manta.monitor.commands.MantaOperationCommand;
-import com.joyent.manta.monitor.commands.MkdirCommand;
-import com.joyent.manta.monitor.commands.PutFileCommand;
+import com.joyent.manta.monitor.commands.*;
 import io.honeybadger.reporter.NoticeReporter;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.collect.ImmutableList.of;
 
@@ -41,7 +37,8 @@ public class FileUploadGetDeleteChain extends MantaOperationsChain {
     @Inject
     public FileUploadGetDeleteChain(final NoticeReporter reporter,
                                     final HoneyBadgerRequestFactory requestFactory,
-                                    final InstanceMetadata metadata) {
-        super(COMMANDS, reporter, requestFactory, metadata);
+                                    final InstanceMetadata metadata,
+                                    @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
+        super(COMMANDS, reporter, requestFactory, metadata, clientStats);
     }
 }

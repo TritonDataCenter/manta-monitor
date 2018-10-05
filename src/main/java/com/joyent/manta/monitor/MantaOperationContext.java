@@ -7,6 +7,7 @@
  */
 package com.joyent.manta.monitor;
 
+import com.google.common.base.Stopwatch;
 import com.joyent.manta.client.MantaClient;
 import org.apache.commons.chain.Context;
 import org.apache.commons.codec.binary.Hex;
@@ -36,10 +37,12 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public static final String TEST_FILE_CHECKSUM_AS_STRING_KEY = "testFileChecksumString";
     public static final String RESPONSE_TIMES_KEY = "responseTime";
     public static final String EXCEPTION_KEY = "exception";
+    public static final String STOPWATCH_KEY = "stopwatch";
 
     public MantaOperationContext() {
         super();
         put(RESPONSE_TIMES_KEY, new ConcurrentHashMap<UUID, Integer>());
+        put(STOPWATCH_KEY, Stopwatch.createUnstarted());
     }
 
     @Override
@@ -136,6 +139,10 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
 
     public Map<UUID, Integer> getResponseTimes() {
         return (Map<UUID, Integer>)get(RESPONSE_TIMES_KEY);
+    }
+
+    public Stopwatch getStopWatch() {
+        return (Stopwatch)get(STOPWATCH_KEY);
     }
 
     @Nullable

@@ -27,6 +27,7 @@ public class GenerateFileCommand implements MantaOperationCommand {
 
     @Override
     public boolean execute(final MantaOperationContext context) throws Exception {
+        context.getStopWatch().start();
         final long filesize = generateFileSize(context);
         context.setTestFileSize(filesize);
 

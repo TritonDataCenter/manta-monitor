@@ -47,6 +47,7 @@ public class CleanupDirsCommand implements MantaOperationCommand {
 
         client.delete(baseDir);
 
+        context.getStopWatch().stop();
         return PROCESSING_COMPLETE;
     }
 }

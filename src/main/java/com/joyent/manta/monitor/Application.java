@@ -14,16 +14,21 @@ import com.joyent.manta.monitor.chains.ChainRunner;
 import com.joyent.manta.monitor.chains.MantaOperationsChain;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.Runner;
+import com.joyent.manta.monitor.jetty.JettyServer;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This is the main entry point into the Manta Monitor application.
@@ -31,7 +36,8 @@ import java.util.Set;
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
     private static final HoneybadgerUncaughtExceptionHandler UNCAUGHT_EXCEPTION_HANDLER;
-
+    private static final JettyServer server = new JettyServer();
+    private static final Map<String, AtomicLong> clientStats = new ConcurrentHashMap<>();
     static {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
     }
@@ -50,10 +56,18 @@ public class Application {
 
         LOG.info("Starting Manta Monitor");
 
+        try {
+            LOG.info("Starting Manta Monitor Web");
+            server.start();
+        } catch (Exception e) {
+            LOG.error("Error in starting Jetty: {}", e);
+        }
+
         final URI configUri = Objects.requireNonNull(parseConfigFileURI(args[0]));
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
-        final Injector injector = Guice.createInjector(module);
+        final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
+        final Injector injector = Guice.createInjector(module, mantaMonitorServletModule);
         final Configuration configuration = injector.getInstance(Configuration.class);
         final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
 
@@ -61,6 +75,14 @@ public class Application {
             runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
             Thread.sleep(2000);
         }
+
+        try {
+            LOG.info("Stopping Manta Monitor Web");
+            server.stop();
+        } catch (Exception e) {
+            LOG.error("Error in stopping Jetty: {}", e);
+        }
+
     }
 
     /**

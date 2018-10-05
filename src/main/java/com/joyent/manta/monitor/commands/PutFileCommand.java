@@ -7,6 +7,7 @@
  */
 package com.joyent.manta.monitor.commands;
 
+import com.google.common.base.Stopwatch;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.client.MantaMetadata;
 import com.joyent.manta.client.MantaObjectResponse;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class PutFileCommand implements MantaOperationCommand {
     public static final PutFileCommand INSTANCE = new PutFileCommand();
@@ -34,7 +36,10 @@ public class PutFileCommand implements MantaOperationCommand {
 
         final File file = context.getTestFile().toFile();
 
+        final Stopwatch stopwatch = Stopwatch.createUnstarted();
+
         try {
+            stopwatch.start();
             final MantaHttpHeaders headers = buildHeaders();
             final MantaMetadata metadata = buildMetadata(context);
 
@@ -42,6 +47,7 @@ public class PutFileCommand implements MantaOperationCommand {
              * pathological latency numbers. */
             final MantaObjectResponse response = client.put(
                     filePath, file, headers, metadata);
+            stopwatch.stop();
             final UUID requestId = UUID.fromString(response.getRequestId());
             final Integer responseTime = parseResponseTime(response.getHttpHeaders());
             context.getResponseTimes().put(requestId, responseTime);
@@ -49,6 +55,7 @@ public class PutFileCommand implements MantaOperationCommand {
             throw new MantaOperationException(e).setPath(filePath);
         } finally {
             Files.deleteIfExists(context.getTestFile());
+            LOG.info("Put operation took: {} milliseconds", stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
 
         return CONTINUE_PROCESSING;

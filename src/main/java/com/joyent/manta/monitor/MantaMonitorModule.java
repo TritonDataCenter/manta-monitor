@@ -9,6 +9,9 @@ package com.joyent.manta.monitor;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.config.Configuration;
@@ -16,6 +19,9 @@ import com.joyent.manta.monitor.config.ConfigurationProvider;
 import io.honeybadger.reporter.NoticeReporter;
 
 import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MantaMonitorModule implements Module {
     private final Thread.UncaughtExceptionHandler honeyBadgerHandler;
@@ -28,6 +34,13 @@ public class MantaMonitorModule implements Module {
         this.honeyBadgerHandler = uncaughtExceptionHandler;
         this.noticeReporter = noticeReporter;
         this.configURI = configUri;
+    }
+
+    @Provides
+    @Singleton
+    @Named("SharedStats")
+    Map<String, AtomicLong> provideMap() {
+        return new ConcurrentHashMap<>();
     }
 
     public void configure(final Binder binder) {
