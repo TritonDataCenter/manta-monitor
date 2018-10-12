@@ -14,12 +14,13 @@ import com.joyent.manta.monitor.chains.ChainRunner;
 import com.joyent.manta.monitor.chains.MantaOperationsChain;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.Runner;
-import com.joyent.manta.monitor.jetty.JettyServer;
+import io.logz.guice.jersey.JerseyServer;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.hotspot.DefaultExports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -36,7 +37,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
     private static final HoneybadgerUncaughtExceptionHandler UNCAUGHT_EXCEPTION_HANDLER;
-    private static final JettyServer server = new JettyServer();
     private static final Map<String, AtomicLong> clientStats = new ConcurrentHashMap<>();
     static {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
@@ -47,21 +47,21 @@ public class Application {
      * @param args requires a single element array with the first element being the URI to a config file
      * @throws InterruptedException thrown when interrupted
      */
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {//InterruptedException {
         if (args.length == 0) {
             System.err.println("Manta monitor requires a single parameter "
                     + "specifying the URL its the JSON configuration file");
             System.exit(1);
         }
 
-        LOG.info("Starting Manta Monitor");
 
-        try {
-            LOG.info("Starting Manta Monitor Web");
-            server.start();
-        } catch (Exception e) {
-            LOG.error("Error in starting Jetty: {}", e);
-        }
+
+//        try {
+//            LOG.info("Starting Manta Monitor Web");
+//            server.start();
+//        } catch (Exception e) {
+//            LOG.error("Error in starting Jetty: {}", e);
+//        }
 
         final URI configUri = Objects.requireNonNull(parseConfigFileURI(args[0]));
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
@@ -69,6 +69,14 @@ public class Application {
         final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
         final Injector injector = Guice.createInjector(module, mantaMonitorServletModule);
         final Configuration configuration = injector.getInstance(Configuration.class);
+
+        LOG.info("Starting Manta Monitor");
+        final JerseyServer server = injector.getInstance(JerseyServer.class);
+        final CustomPrometheusCollector customPrometheusCollector = injector.getInstance(CustomPrometheusCollector.class);
+        DefaultExports.initialize();
+        CollectorRegistry.defaultRegistry.register(customPrometheusCollector);
+        server.start();
+
         final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
 
         while (!runningChains.isEmpty()) {
@@ -76,12 +84,15 @@ public class Application {
             Thread.sleep(2000);
         }
 
-        try {
-            LOG.info("Stopping Manta Monitor Web");
-            server.stop();
-        } catch (Exception e) {
-            LOG.error("Error in stopping Jetty: {}", e);
-        }
+//        try {
+//            LOG.info("Stopping Manta Monitor Web");
+//            server.stop();
+//        } catch (Exception e) {
+//            LOG.error("Error in stopping Jetty: {}", e);
+//        }
+
+        LOG.info("Stopping Manta Monitor Web");
+        server.stop();
 
     }
 

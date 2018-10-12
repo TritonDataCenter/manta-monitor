@@ -1,6 +1,11 @@
-package com.joyent.manta.monitor.jetty;
+package com.joyent.manta.monitor.servlets;
 
+import com.joyent.manta.monitor.JMXMetricsProvider;
+import io.prometheus.client.Collector;
+import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
+import io.prometheus.client.CounterMetricFamily;
+import io.prometheus.client.hotspot.DefaultExports;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -12,9 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
 
 @Singleton
 public class MantaMonitorServlet extends HttpServlet {
@@ -46,15 +50,10 @@ public class MantaMonitorServlet extends HttpServlet {
             });
         } else {
             response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println("Waiting to collect metrics");
         }
 
     }
-
-//    public void setContext(MantaOperationContext context) {
-//        this.context = context;
-//    }
-
 
 }

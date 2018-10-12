@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import java.net.SocketTimeoutException;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -36,6 +35,7 @@ public class MantaOperationsChain extends ChainBase {
     private final ThrowableProcessor throwableProcessor;
     private final InstanceMetadata metadata;
     private final Map<String, AtomicLong> clientStats;
+    private final JMXMetricsProvider jmxMetricsProvider;
 
     private static final Map<Integer, String> STATUS_CODE_TO_TAG = ImmutableMap.of(
         HttpStatus.SC_INTERNAL_SERVER_ERROR, "internal-server-error",
@@ -49,12 +49,14 @@ public class MantaOperationsChain extends ChainBase {
                                 final NoticeReporter reporter,
                                 final HoneyBadgerRequestFactory requestFactory,
                                 final InstanceMetadata metadata,
+                                @Named("JMXMetricsProvider") final JMXMetricsProvider jmxMetricsProvider,
                                 @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
         super(commands);
         this.reporter = reporter;
         this.metadata = metadata;
         this.throwableProcessor = new ThrowableProcessor(requestFactory);
         this.clientStats = clientStats;
+        this.jmxMetricsProvider = jmxMetricsProvider;
     }
 
     public void execute(final MantaOperationContext context) {
@@ -64,6 +66,7 @@ public class MantaOperationsChain extends ChainBase {
             LOG.info("{} starting", getClass().getSimpleName());
             super.execute(context);
             throwable = context.getException();
+            jmxMetricsProvider.recordMetrics();
         } catch (Exception e) {
             throwable = e;
         } finally {
@@ -72,6 +75,7 @@ public class MantaOperationsChain extends ChainBase {
             LOG.info("Stopwatch recorded {} milliseconds", context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
             AtomicLong elapsedTime = new AtomicLong(context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
             clientStats.put(getClass().getSimpleName(), elapsedTime);
+
         }
 
         if (throwable == null) {

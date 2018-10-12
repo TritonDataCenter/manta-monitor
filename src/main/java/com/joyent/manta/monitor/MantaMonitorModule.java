@@ -13,10 +13,13 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import com.google.inject.throwingproviders.ThrowingProviderBinder;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.ConfigurationProvider;
 import io.honeybadger.reporter.NoticeReporter;
+import io.logz.guice.jersey.JerseyModule;
+import io.logz.guice.jersey.configuration.JerseyConfiguration;
 
 import java.net.URI;
 import java.util.Map;
@@ -44,6 +47,19 @@ public class MantaMonitorModule implements Module {
     }
 
     public void configure(final Binder binder) {
+
+        binder.bind(Long.class).annotatedWith(Names.named("retryCount")).toInstance(0L);
+
+        ThrowingProviderBinder.create(binder)
+                .bind(ConnectionProvider.class, JMXClient.class)
+                .to(JMXConnectionProvider.class);
+
+        final JerseyConfiguration jerseyConfig = JerseyConfiguration.builder()
+                .addPort(8090)
+                .build();
+        binder.bind(JMXMetricsProvider.class).annotatedWith(Names.named("JMXMetricsProvider")).to(JMXMetricsProvider.class).asEagerSingleton();
+        binder.bind(CustomPrometheusCollector.class).asEagerSingleton();
+        binder.install(new JerseyModule(jerseyConfig));
         binder.bind(InstanceMetadata.class).asEagerSingleton();
         binder.bind(io.honeybadger.reporter.config.ConfigContext.class).toInstance(noticeReporter.getConfig());
         binder.bind(NoticeReporter.class).toInstance(noticeReporter);
