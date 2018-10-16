@@ -54,15 +54,6 @@ public class Application {
             System.exit(1);
         }
 
-
-
-//        try {
-//            LOG.info("Starting Manta Monitor Web");
-//            server.start();
-//        } catch (Exception e) {
-//            LOG.error("Error in starting Jetty: {}", e);
-//        }
-
         final URI configUri = Objects.requireNonNull(parseConfigFileURI(args[0]));
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
@@ -84,16 +75,8 @@ public class Application {
             Thread.sleep(2000);
         }
 
-//        try {
-//            LOG.info("Stopping Manta Monitor Web");
-//            server.stop();
-//        } catch (Exception e) {
-//            LOG.error("Error in stopping Jetty: {}", e);
-//        }
-
         LOG.info("Stopping Manta Monitor Web");
         server.stop();
-
     }
 
     /**

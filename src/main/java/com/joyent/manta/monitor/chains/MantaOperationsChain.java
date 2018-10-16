@@ -71,14 +71,14 @@ public class MantaOperationsChain extends ChainBase {
             throwable = e;
         } finally {
             LOG.info("{} finished", getClass().getSimpleName());
-
-            LOG.info("Stopwatch recorded {} milliseconds", context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
-            AtomicLong elapsedTime = new AtomicLong(context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
-            clientStats.put(getClass().getSimpleName(), elapsedTime);
-
         }
 
         if (throwable == null) {
+            if(LOG.isInfoEnabled()) {
+                LOG.info("Stopwatch recorded {} milliseconds", context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
+                AtomicLong elapsedTime = new AtomicLong(context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
+                clientStats.put(getClass().getSimpleName(), elapsedTime);
+            }
             return;
         }
 

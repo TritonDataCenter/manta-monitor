@@ -1,11 +1,6 @@
 package com.joyent.manta.monitor.servlets;
 
-import com.joyent.manta.monitor.JMXMetricsProvider;
-import io.prometheus.client.Collector;
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
-import io.prometheus.client.CounterMetricFamily;
-import io.prometheus.client.hotspot.DefaultExports;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,7 +29,6 @@ public class MantaMonitorServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         if(clientStats.size() > 0) {
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -53,7 +47,5 @@ public class MantaMonitorServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println("Waiting to collect metrics");
         }
-
     }
-
 }

@@ -7,13 +7,9 @@
  */
 package com.joyent.manta.monitor;
 
-import com.google.inject.Binder;
-import com.google.inject.Module;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
+import com.google.inject.*;
 import com.google.inject.name.Names;
-import com.google.inject.throwingproviders.ThrowingProviderBinder;
+//import com.google.inject.throwingproviders.ThrowingProviderBinder;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.ConfigurationProvider;
@@ -39,21 +35,16 @@ public class MantaMonitorModule implements Module {
         this.configURI = configUri;
     }
 
-    @Provides
-    @Singleton
-    @Named("SharedStats")
-    Map<String, AtomicLong> provideMap() {
-        return new ConcurrentHashMap<>();
-    }
-
     public void configure(final Binder binder) {
 
         binder.bind(Long.class).annotatedWith(Names.named("retryCount")).toInstance(0L);
 
-        ThrowingProviderBinder.create(binder)
-                .bind(ConnectionProvider.class, JMXClient.class)
-                .to(JMXConnectionProvider.class);
+        binder.bind(new TypeLiteral<Map<String, AtomicLong>>() {})
+                .annotatedWith(Names.named("SharedStats"))
+                .toProvider(ConcurrentHashMap::new)
+                .asEagerSingleton();
 
+        binder.bind(PlatformMbeanServerProvider.class).asEagerSingleton();
         final JerseyConfiguration jerseyConfig = JerseyConfiguration.builder()
                 .addPort(8090)
                 .build();

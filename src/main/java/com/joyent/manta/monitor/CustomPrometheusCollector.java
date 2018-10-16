@@ -24,6 +24,9 @@ public class CustomPrometheusCollector extends Collector {
         if(jmxMetricsProvider.getPutRequestMeanValue() != null) {
             metricFamilySamples.add((new GaugeMetricFamily("Mean", "Put Request Mean Value", jmxMetricsProvider.getPutRequestMeanValue())));
         }
+        if(jmxMetricsProvider.getPutRequestCount() != null) {
+            metricFamilySamples.add((new CounterMetricFamily("Put Request Count", "", jmxMetricsProvider.getPutRequestCount())));
+        }
         return metricFamilySamples;
     }
 }
