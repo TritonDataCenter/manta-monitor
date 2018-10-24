@@ -16,7 +16,6 @@ import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.Runner;
 import io.logz.guice.jersey.JerseyServer;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.hotspot.DefaultExports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class Application {
      * @param args requires a single element array with the first element being the URI to a config file
      * @throws InterruptedException thrown when interrupted
      */
-    public static void main(String[] args) throws Exception {//InterruptedException {
+    public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.err.println("Manta monitor requires a single parameter "
                     + "specifying the URL its the JSON configuration file");
@@ -63,9 +62,7 @@ public class Application {
 
         LOG.info("Starting Manta Monitor");
         final JerseyServer server = injector.getInstance(JerseyServer.class);
-        final CustomPrometheusCollector customPrometheusCollector = injector.getInstance(CustomPrometheusCollector.class);
         DefaultExports.initialize();
-        CollectorRegistry.defaultRegistry.register(customPrometheusCollector);
         server.start();
 
         final Set<ChainRunner> runningChains = startAllChains(configuration, injector);

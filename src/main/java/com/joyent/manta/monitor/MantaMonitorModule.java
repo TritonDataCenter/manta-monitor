@@ -9,7 +9,6 @@ package com.joyent.manta.monitor;
 
 import com.google.inject.*;
 import com.google.inject.name.Names;
-//import com.google.inject.throwingproviders.ThrowingProviderBinder;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.ConfigurationProvider;
@@ -36,19 +35,15 @@ public class MantaMonitorModule implements Module {
     }
 
     public void configure(final Binder binder) {
-
-        binder.bind(Long.class).annotatedWith(Names.named("retryCount")).toInstance(0L);
-
         binder.bind(new TypeLiteral<Map<String, AtomicLong>>() {})
                 .annotatedWith(Names.named("SharedStats"))
                 .toProvider(ConcurrentHashMap::new)
                 .asEagerSingleton();
-
         binder.bind(PlatformMbeanServerProvider.class).asEagerSingleton();
         final JerseyConfiguration jerseyConfig = JerseyConfiguration.builder()
                 .addPort(8090)
                 .build();
-        binder.bind(JMXMetricsProvider.class).annotatedWith(Names.named("JMXMetricsProvider")).to(JMXMetricsProvider.class).asEagerSingleton();
+        binder.bind(JMXMetricsCollector.class).annotatedWith(Names.named("JMXMetricsCollector")).to(JMXMetricsCollector.class).asEagerSingleton();
         binder.bind(CustomPrometheusCollector.class).asEagerSingleton();
         binder.install(new JerseyModule(jerseyConfig));
         binder.bind(InstanceMetadata.class).asEagerSingleton();

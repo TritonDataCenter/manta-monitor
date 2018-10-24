@@ -1,6 +1,6 @@
 package com.joyent.manta.monitor.servlets;
 
-import io.prometheus.client.Counter;
+import com.joyent.manta.monitor.MBeanServerOperationException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,15 +17,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Singleton
 public class MantaMonitorServlet extends HttpServlet {
-
     private final Map<String, AtomicLong> clientStats;
-    private final Counter requests;
 
     @Inject
-    public MantaMonitorServlet (@Named("SharedStats") Map<String, AtomicLong> clientStats,
-                                @Named("SharedCounter") Counter requests) {
+    public MantaMonitorServlet (@Named("SharedStats") Map<String, AtomicLong> clientStats) {
         this.clientStats = clientStats;
-        this.requests = requests;
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -33,14 +29,14 @@ public class MantaMonitorServlet extends HttpServlet {
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_OK);
             clientStats.forEach((key, value) -> {
-                try{
+                try {
                     response.getWriter().println("Elapsed time for "+key + " : " +value+" milliseconds");
-                    requests.labels("get").inc();
-
-                }catch (IOException ie) {
-                    System.out.println(ie);
+                } catch (IOException ie) {
+                    String message = "Error in writing the response";
+                    MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, ie);
+                    mBeanServerOperationException.setContextValue("requestURI", request.getRequestURI());
+                    throw mBeanServerOperationException;
                 }
-
             });
         } else {
             response.setContentType("application/json");
