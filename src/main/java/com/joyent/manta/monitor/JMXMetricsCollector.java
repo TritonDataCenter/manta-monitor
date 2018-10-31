@@ -24,7 +24,7 @@ public class JMXMetricsCollector {
 
     @Nullable
     @SuppressWarnings("unchecked")
-    private <T extends Number> T getMBeanAttributeValue(String mBeanObjectName, String attribute, final Class<T> returnType) throws Exception {
+    public <T extends Number> T getMBeanAttributeValue(String mBeanObjectName, String attribute, final Class<T> returnType) throws Exception {
         ObjectName objectName = getObjectNameFromString(mBeanObjectName);
         if (objectName != null) {
             MBeanServer mBeanServer = platformMbeanServerProvider.getPlatformMBeanServer();
@@ -46,66 +46,6 @@ public class JMXMetricsCollector {
             }
         }
         return null;
-    }
-
-    @Nullable
-    public Double getPutRequestMeanValue() throws Exception {
-        Double value = getMBeanAttributeValue("requests-put", "Mean", Double.class);
-        if(value != null) {
-            return value;
-        } else {
-            String message = "Error in getting attribute value";
-            Map<String, Object> context = new HashMap<>();
-            context.put("RequestedMBeanObject", "requests-put");
-            context.put("RequestedAttribute", "Mean");
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, null, context);
-            throw mBeanServerOperationException;
-        }
-    }
-
-    @Nullable
-    public Double getPutRequest50thPercentileValue() throws Exception {
-        Double value = getMBeanAttributeValue("requests-put", "50thPercentile", Double.class);
-        if(value != null) {
-            return value;
-        } else {
-            String message = "Error in getting attribute value";
-            Map<String, Object> context = new HashMap<>();
-            context.put("RequestedMBeanObject", "requests-put");
-            context.put("RequestedAttribute", "50thPercentile");
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, null, context);
-            throw mBeanServerOperationException;
-        }
-    }
-
-    @Nullable
-    public Long getRetryCount() throws Exception {
-        Long value = getMBeanAttributeValue("retries", "Count", Long.class);
-        if(value != null) {
-            return value;
-        } else {
-            String message = "Error in getting attribute value";
-            Map<String, Object> context = new HashMap<>();
-            context.put("RequestedMBeanObject", "retries");
-            context.put("RequestedAttribute", "Count");
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, null, context);
-            throw mBeanServerOperationException;
-        }
-    }
-
-    @Nullable
-    public Long getPutRequestCount() throws Exception {
-        Long value = getMBeanAttributeValue("requests-put", "Count", Long.class);
-        if(value != null) {
-            return value;
-        } else {
-            String message = "Error in getting attribute value";
-            Map<String, Object> context = new HashMap<>();
-            context.put("RequestedMBeanObject", "requests-put");
-            context.put("RequestedAttribute", "Count");
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, null, context);
-            throw mBeanServerOperationException;
-        }
     }
 
     public boolean validateMbeanObject(String objectName) throws Exception {

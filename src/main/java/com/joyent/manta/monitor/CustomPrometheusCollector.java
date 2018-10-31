@@ -35,13 +35,13 @@ public class CustomPrometheusCollector extends Collector {
                 try {
                     metricFamilySamples.add((new GaugeMetricFamily("requests_put_mean",
                             "Put Requests Mean Value",
-                            jmxMetricsCollector.getPutRequestMeanValue())));
+                            jmxMetricsCollector.getMBeanAttributeValue("requests-put", "Mean", Double.class))));
                     metricFamilySamples.add((new GaugeMetricFamily("requests_put_50thPercentile",
                             "Put Requests 50thPercentile Value",
-                            jmxMetricsCollector.getPutRequest50thPercentileValue())));
+                            jmxMetricsCollector.getMBeanAttributeValue("requests-put", "50thPercentile", Double.class))));
                     metricFamilySamples.add((new CounterMetricFamily("requests_put_count",
                             "Put Requests Count",
-                            jmxMetricsCollector.getPutRequestCount().doubleValue())));
+                            jmxMetricsCollector.getMBeanAttributeValue("requests-put", "Count", Long.class).doubleValue())));
                 } catch (Exception e) {
                     if(e instanceof ExceptionContext) {
                         LOG.error("Failed to get the metric for reason: {}", e.getMessage());
@@ -53,7 +53,7 @@ public class CustomPrometheusCollector extends Collector {
                 try {
                     metricFamilySamples.add(new CounterMetricFamily("Retry",
                             "Number of Retries",
-                            jmxMetricsCollector.getRetryCount().doubleValue()));
+                            jmxMetricsCollector.getMBeanAttributeValue("retries", "Count", Long.class).doubleValue()));
                 } catch (Exception e) {
                     if(e instanceof ExceptionContext) {
                         LOG.error("Failed to get the metric for reason: {}", e.getMessage());
