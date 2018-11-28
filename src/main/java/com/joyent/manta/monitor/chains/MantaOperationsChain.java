@@ -9,16 +9,15 @@ package com.joyent.manta.monitor.chains;
 
 import com.google.common.collect.ImmutableMap;
 import com.joyent.manta.exception.MantaClientHttpResponseException;
-import com.joyent.manta.http.MantaHttpHeaders;
 import com.joyent.manta.monitor.*;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import io.honeybadger.reporter.NoticeReporter;
+import io.honeybadger.reporter.dto.Context;
 import io.honeybadger.reporter.dto.Request;
 import io.prometheus.client.CollectorRegistry;
 import org.apache.commons.chain.impl.ChainBase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionContext;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +113,25 @@ public class MantaOperationsChain extends ChainBase {
                 if (tag != null) {
                     tags.add(tag);
                 }
+            }
+            if (t instanceof MBeanServerOperationException) {
+                String message = "Manta monitor failed with exception: \n";
+                Request request = results.request;
+                Context context = request.getContext();
+                StringBuilder errorString = new StringBuilder(message);
+                errorString.append("Cause: "+t.getCause()+"\n");
+                errorString.append("instanceId: "+context.get("Instance ID")+"\n");
+                errorString.append("imageId: "+context.get("Image ID")+"\n");
+                errorString.append("serverId: "+context.get("Server ID")+"\n");
+                errorString.append("datacenterName: "+context.get("Datacenter Name")+"\n");
+                errorString.append("failedObjectName: "+context.get("objectName")+"\n");
+                errorString.append("failedAttribute: "+context.get("attribute")+"\n");
+                errorString.append("failedMBeanDomain: "+context.get("mbeanServerDomain")+"\n");
+                errorString.append("failedMBeanObjectKey: "+context.get("mbeanObjectKey")+"\n");
+                errorString.append("failedAttributeValueFromMbean: "+context.get("attributeValue")+"\n");
+                errorString.append("failedAttributeExpectedReturnType: "+context.get("expectedAttributeReturnType")+"\n");
+                LOG.error(errorString.toString());
+                System.exit(1);
             }
         }
 

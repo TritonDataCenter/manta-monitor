@@ -26,7 +26,7 @@ In order to build this project you need the following:
 
 From command line, go to the project source directory
 ```
-joyentmac12331:manta-monitor$ mvn clean install
+$ mvn clean install
 ```
 
 Please follow the documentation [here](doc/intellij-setup.md) to run the application in IntelliJ.

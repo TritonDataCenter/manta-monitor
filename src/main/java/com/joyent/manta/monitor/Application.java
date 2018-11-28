@@ -24,11 +24,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This is the main entry point into the Manta Monitor application.
@@ -36,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
     private static final HoneybadgerUncaughtExceptionHandler UNCAUGHT_EXCEPTION_HANDLER;
-    private static final Map<String, AtomicLong> clientStats = new ConcurrentHashMap<>();
+    private static AtomicInteger retryCount = new AtomicInteger(3);
     static {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
     }
@@ -46,7 +44,7 @@ public class Application {
      * @param args requires a single element array with the first element being the URI to a config file
      * @throws InterruptedException thrown when interrupted
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws InterruptedException {
         if (args.length == 0) {
             System.err.println("Manta monitor requires a single parameter "
                     + "specifying the URL its the JSON configuration file");
@@ -63,8 +61,21 @@ public class Application {
         LOG.info("Starting Manta Monitor");
         final JerseyServer server = injector.getInstance(JerseyServer.class);
         DefaultExports.initialize();
-        server.start();
-
+        //We will try to start the server three times and then fail the app.
+        while (retryCount.get() > 0) {
+            try {
+                server.start();
+                retryCount.set(0);
+            } catch (Exception e) {
+                retryCount.getAndDecrement();
+                LOG.error("Failed to start Embedded Jetty server. Will retry {} times ", retryCount.get());
+                Thread.sleep(2000);
+                if (retryCount.get() == 0) {
+                    String message = "Failed to start Embedded Jetty Server even after 3 retries";
+                    throw new MantaOperationException(message, e);
+                }
+            }
+        }
         final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
 
         while (!runningChains.isEmpty()) {
@@ -73,7 +84,12 @@ public class Application {
         }
 
         LOG.info("Stopping Manta Monitor Web");
-        server.stop();
+        try {
+            server.stop();
+        } catch (Exception e) {
+            String message = "Failed to stop Embedded Jetty server";
+            throw new MantaOperationException(message, e);
+        }
     }
 
     /**
