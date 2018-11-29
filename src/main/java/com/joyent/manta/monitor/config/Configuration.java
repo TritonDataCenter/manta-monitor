@@ -12,19 +12,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Configuration class that maps to a JSON configuration file.
  */
 public class Configuration {
     private final Set<Runner> testRunners;
+    private final AtomicInteger jettyServerPort = new AtomicInteger();
 
     @JsonCreator
-    public Configuration(@JsonProperty("testRunners") final Set<Runner> testRunners) {
+    public Configuration(@JsonProperty("testRunners") final Set<Runner> testRunners,
+                         @JsonProperty("jettyServerPort") final int jettyServerPort) {
+
         this.testRunners = ImmutableSet.copyOf(testRunners);
+        this.jettyServerPort.set(jettyServerPort);
     }
 
     public Set<Runner> getTestRunners() {
         return testRunners;
+    }
+
+    public int getJettyServerPort() {
+        return jettyServerPort.get();
     }
 }

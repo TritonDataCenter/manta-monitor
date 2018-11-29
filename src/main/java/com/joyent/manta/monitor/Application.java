@@ -55,11 +55,12 @@ public class Application {
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
         final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
-        final Injector injector = Guice.createInjector(module, mantaMonitorServletModule);
+        final Injector injector = Guice.createInjector(module);
         final Configuration configuration = injector.getInstance(Configuration.class);
+        final Injector jettyServerBuilderInjector = injector.createChildInjector(new JettyServerBuilderModule(injector), mantaMonitorServletModule);
 
         LOG.info("Starting Manta Monitor");
-        final JerseyServer server = injector.getInstance(JerseyServer.class);
+        final JerseyServer server = jettyServerBuilderInjector.getInstance(JerseyServer.class);
         DefaultExports.initialize();
         //We will try to start the server three times and then fail the app.
         while (retryCount.get() > 0) {
@@ -71,8 +72,10 @@ public class Application {
                 LOG.error("Failed to start Embedded Jetty server. Will retry {} times ", retryCount.get());
                 Thread.sleep(2000);
                 if (retryCount.get() == 0) {
-                    String message = "Failed to start Embedded Jetty Server even after 3 retries";
-                    throw new MantaOperationException(message, e);
+                    String message = "Failed to start Embedded Jetty Server.";
+                    MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, e);
+                    mBeanServerOperationException.setContextValue("serverPort", configuration.getJettyServerPort());
+                    throw mBeanServerOperationException;
                 }
             }
         }
@@ -88,7 +91,9 @@ public class Application {
             server.stop();
         } catch (Exception e) {
             String message = "Failed to stop Embedded Jetty server";
-            throw new MantaOperationException(message, e);
+            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, e);
+            mBeanServerOperationException.setContextValue("serverPort", configuration.getJettyServerPort());
+            throw mBeanServerOperationException;
         }
     }
 

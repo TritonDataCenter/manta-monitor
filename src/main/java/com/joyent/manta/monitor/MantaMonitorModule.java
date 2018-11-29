@@ -34,18 +34,15 @@ public class MantaMonitorModule implements Module {
         this.configURI = configUri;
     }
 
+    @Override
     public void configure(final Binder binder) {
         binder.bind(new TypeLiteral<Map<String, AtomicLong>>() {})
                 .annotatedWith(Names.named("SharedStats"))
                 .toProvider(ConcurrentHashMap::new)
                 .asEagerSingleton();
         binder.bind(PlatformMbeanServerProvider.class).asEagerSingleton();
-        final JerseyConfiguration jerseyConfig = JerseyConfiguration.builder()
-                .addPort(8090)
-                .build();
         binder.bind(JMXMetricsCollector.class).annotatedWith(Names.named("JMXMetricsCollector")).to(JMXMetricsCollector.class).asEagerSingleton();
         binder.bind(CustomPrometheusCollector.class).asEagerSingleton();
-        binder.install(new JerseyModule(jerseyConfig));
         binder.bind(InstanceMetadata.class).asEagerSingleton();
         binder.bind(io.honeybadger.reporter.config.ConfigContext.class).toInstance(noticeReporter.getConfig());
         binder.bind(NoticeReporter.class).toInstance(noticeReporter);
