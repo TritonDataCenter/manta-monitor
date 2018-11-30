@@ -62,23 +62,13 @@ public class Application {
         LOG.info("Starting Manta Monitor");
         final JerseyServer server = jettyServerBuilderInjector.getInstance(JerseyServer.class);
         DefaultExports.initialize();
-        //We will try to start the server three times and then fail the app.
-        while (retryCount.get() > 0) {
-            try {
-                server.start();
-                retryCount.set(0);
-            } catch (Exception e) {
-                retryCount.getAndDecrement();
-                LOG.error("Failed to start Embedded Jetty server. Will retry {} times ", retryCount.get());
-                Thread.sleep(2000);
-                if (retryCount.get() == 0) {
-                    String message = "Failed to start Embedded Jetty Server.";
-                    MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, e);
-                    mBeanServerOperationException.setContextValue("serverPort", configuration.getJettyServerPort());
-                    throw mBeanServerOperationException;
-                }
-            }
+        try {
+            server.start();
+        } catch (Exception e) {
+            LOG.error("Failed to start Embedded Jetty Server at port: {}. Metrics reporting will be unavailable", configuration.getJettyServerPort(), e);
+            throw new RuntimeException();
         }
+
         final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
 
         while (!runningChains.isEmpty()) {
@@ -90,10 +80,8 @@ public class Application {
         try {
             server.stop();
         } catch (Exception e) {
-            String message = "Failed to stop Embedded Jetty server";
-            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, e);
-            mBeanServerOperationException.setContextValue("serverPort", configuration.getJettyServerPort());
-            throw mBeanServerOperationException;
+            LOG.error("Failed to start Embedded Jetty Server at port: {}", configuration.getJettyServerPort(), e);
+            throw new RuntimeException();
         }
     }
 

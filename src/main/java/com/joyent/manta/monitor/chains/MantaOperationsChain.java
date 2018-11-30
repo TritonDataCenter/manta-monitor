@@ -8,6 +8,7 @@
 package com.joyent.manta.monitor.chains;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.joyent.manta.exception.MantaClientHttpResponseException;
 import com.joyent.manta.monitor.*;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
@@ -115,22 +116,14 @@ public class MantaOperationsChain extends ChainBase {
                 }
             }
             if (t instanceof MBeanServerOperationException) {
-                String message = "Manta monitor failed with exception: \n";
+                String message = "Failed to retrieve JMX metrics from the manta client";
                 Request request = results.request;
                 Context context = request.getContext();
-                StringBuilder errorString = new StringBuilder(message);
-                errorString.append("Cause: "+t.getCause()+"\n");
-                errorString.append("instanceId: "+context.get("Instance ID")+"\n");
-                errorString.append("imageId: "+context.get("Image ID")+"\n");
-                errorString.append("serverId: "+context.get("Server ID")+"\n");
-                errorString.append("datacenterName: "+context.get("Datacenter Name")+"\n");
-                errorString.append("failedObjectName: "+context.get("objectName")+"\n");
-                errorString.append("failedAttribute: "+context.get("attribute")+"\n");
-                errorString.append("failedMBeanDomain: "+context.get("mbeanServerDomain")+"\n");
-                errorString.append("failedMBeanObjectKey: "+context.get("mbeanObjectKey")+"\n");
-                errorString.append("failedAttributeValueFromMbean: "+context.get("attributeValue")+"\n");
-                errorString.append("failedAttributeExpectedReturnType: "+context.get("expectedAttributeReturnType")+"\n");
-                LOG.error(errorString.toString());
+                ImmutableSet<String> contextKeySet = ImmutableSet.copyOf(context.keySet());
+                for(String key : contextKeySet) {
+                    ( (MBeanServerOperationException) t ).setContextValue(key, context.get(key));
+                }
+                LOG.error(message, t);
                 System.exit(1);
             }
         }

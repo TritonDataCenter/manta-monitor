@@ -9,8 +9,6 @@ import javax.validation.ValidationException;
 
 import java.io.InvalidObjectException;
 import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
 
 public class JMXMetricsCollector {
     private final PlatformMbeanServerProvider platformMbeanServerProvider;
@@ -29,17 +27,15 @@ public class JMXMetricsCollector {
         ObjectName objectName = getObjectNameFromString(mBeanObjectName);
         if (objectName == null) {
             String message = "Requested MBean Object not found";
-            Map<String, Object> context = new HashMap<>();
-            context.put("objectName", mBeanObjectName);
-            context.put("attribute", attribute);
-            context.put("mbeanServerDomain", MBEAN_DOMAIN);
-            context.put("mbeanObjectKey", MBEAN_OBJECT_KEY);
-            context.put("expectedAttributeReturnType", returnType.getCanonicalName());
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, new InvalidObjectException(message), context);
+            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new InvalidObjectException(message));
+            mBeanServerOperationException.addContextValue("objectName", mBeanObjectName);
+            mBeanServerOperationException.addContextValue("attribute", attribute);
+            mBeanServerOperationException.addContextValue("mbeanServerDomain", MBEAN_DOMAIN);
+            mBeanServerOperationException.addContextValue("mbeanObjectKey", MBEAN_OBJECT_KEY);
             throw mBeanServerOperationException;
         }
         MBeanServer mBeanServer = platformMbeanServerProvider.getPlatformMBeanServer();
-        Object value = null;
+        Object value;
         try {
             value = mBeanServer.getAttribute(objectName, attribute);
             final Number number;
@@ -51,14 +47,14 @@ public class JMXMetricsCollector {
                     number = Double.parseDouble(value.toString());
                 } catch (NumberFormatException e) {
                     String message = "Failed to parse attribute value to number";
-                    Map<String, Object> context = new HashMap<>();
-                    context.put("objectName", objectName.getCanonicalName());
-                    context.put("attribute", attribute);
-                    context.put("mbeanServerDomain", MBEAN_DOMAIN);
-                    context.put("mbeanObjectKey", MBEAN_OBJECT_KEY);
-                    context.put("attributeValue", value.toString());
-                    context.put("expectedAttributeReturnType", returnType.getCanonicalName());
-                    MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, e, context);
+                    MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, e);
+                    mBeanServerOperationException.addContextValue("objectName", objectName.getCanonicalName());
+                    mBeanServerOperationException.addContextValue("attribute", attribute);
+                    mBeanServerOperationException.addContextValue("mbeanServerDomain", MBEAN_DOMAIN);
+                    mBeanServerOperationException.addContextValue("mbeanObjectKey", MBEAN_OBJECT_KEY);
+                    mBeanServerOperationException.addContextValue("expectedAttributeReturnType", returnType.getCanonicalName());
+                    mBeanServerOperationException.addContextValue("resultAttributeValueReturnType", value != null ? value.getClass() : null);
+                    mBeanServerOperationException.addContextValue("resultAttributeValue", value);
                     throw mBeanServerOperationException;
                 }
             }
@@ -79,7 +75,6 @@ public class JMXMetricsCollector {
                 return (T)Byte.valueOf(number.byteValue());
             }
         } catch (AttributeNotFoundException | InstanceNotFoundException | ReflectionException | MBeanException e) {
-            Map<String, Object> context = new HashMap<>();
             String message;
             if (e instanceof AttributeNotFoundException) {
                 message = "The specified attribute does not exist or cannot be retrieved";
@@ -90,14 +85,11 @@ public class JMXMetricsCollector {
             } else {
                 message = "The requested operation is not supported by the MBean Server ";
             }
-            context.put("objectName", objectName.getCanonicalName());
-            context.put("attribute", attribute);
-            context.put("mbeanServerDomain", MBEAN_DOMAIN);
-            context.put("mbeanObjectKey", MBEAN_OBJECT_KEY);
-            context.put("attributeValue", value.toString());
-            context.put("expectedAttributeReturnType", returnType.getCanonicalName());
-
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, e, context);
+            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, e);
+            mBeanServerOperationException.addContextValue("objectName", objectName.getCanonicalName());
+            mBeanServerOperationException.addContextValue("attribute", attribute);
+            mBeanServerOperationException.addContextValue("mbeanServerDomain", MBEAN_DOMAIN);
+            mBeanServerOperationException.addContextValue("mbeanObjectKey", MBEAN_OBJECT_KEY);
             throw mBeanServerOperationException;
         }
         return null;
@@ -112,11 +104,10 @@ public class JMXMetricsCollector {
         }
         if (!response) {
             String message = "Requested mbean object is not registered with the Platform MBean Server";
-            Map<String, Object> context = new HashMap<>();
-            context.put("mbeanServerDomain", MBEAN_DOMAIN);
-            context.put("mbeanObjectKey", MBEAN_OBJECT_KEY);
-            context.put("objectName", objectName);
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, new ValidationException(message), context);
+            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new ValidationException(message));
+            mBeanServerOperationException.addContextValue("objectName", objectName);
+            mBeanServerOperationException.addContextValue("mbeanServerDomain", MBEAN_DOMAIN);
+            mBeanServerOperationException.addContextValue("mbeanObjectKey", MBEAN_OBJECT_KEY);
             throw mBeanServerOperationException;
         }
         return response;
@@ -135,26 +126,12 @@ public class JMXMetricsCollector {
             }
         } catch (MalformedObjectNameException mfe) {
             String message = String.format("Error in creating mbean object name from the string %s", objectName);
-            Map<String, Object> context = new HashMap<>();
-            context.put("mbeanServerDomain", MBEAN_DOMAIN);
-            context.put("mbeanObjectKey", MBEAN_OBJECT_KEY);
-            context.put("objectName", objectName);
-            MBeanServerOperationException mBeanServerOperationException = createMBeanServerOperationException(message, mfe, context);
+            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, mfe);
+            mBeanServerOperationException.addContextValue("objectName", objectName);
+            mBeanServerOperationException.addContextValue("mbeanServerDomain", MBEAN_DOMAIN);
+            mBeanServerOperationException.addContextValue("mbeanObjectKey", MBEAN_OBJECT_KEY);
             throw mBeanServerOperationException;
         }
         return responseObjectName;
-    }
-
-    private MBeanServerOperationException createMBeanServerOperationException(String message, Throwable cause, Map<String, Object> context) {
-        MBeanServerOperationException mBeanServerOperationException;
-        if (cause == null) {
-            mBeanServerOperationException = new MBeanServerOperationException(message);
-        } else {
-            mBeanServerOperationException = new MBeanServerOperationException(message, cause);
-        }
-        context.forEach((label, value) -> {
-            mBeanServerOperationException.setContextValue(label, value);
-        });
-        return mBeanServerOperationException;
     }
 }
