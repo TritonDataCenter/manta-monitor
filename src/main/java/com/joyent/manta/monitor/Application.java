@@ -26,7 +26,6 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This is the main entry point into the Manta Monitor application.
@@ -34,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
     private static final HoneybadgerUncaughtExceptionHandler UNCAUGHT_EXCEPTION_HANDLER;
-    private static AtomicInteger retryCount = new AtomicInteger(3);
     static {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
     }
