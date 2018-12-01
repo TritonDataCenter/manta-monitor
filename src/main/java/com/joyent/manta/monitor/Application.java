@@ -7,6 +7,7 @@
  */
 package com.joyent.manta.monitor;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.joyent.manta.client.MantaClient;
@@ -63,8 +64,14 @@ public class Application {
         try {
             server.start();
         } catch (Exception e) {
-            LOG.error("Failed to start Embedded Jetty Server at port: {}. Metrics reporting will be unavailable", configuration.getJettyServerPort(), e);
-            throw new RuntimeException();
+            InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
+            ImmutableMap<String, String> instanceMetadataMap = ImmutableMap.copyOf(instanceMetadata.asMap());
+            String message = "Failed to start Embedded Jetty Server at port: "+configuration.getJettyServerPort();
+            JettyServerOperationException jettyServerOperationException = new JettyServerOperationException(message, e);
+            instanceMetadataMap.forEach((key, value) -> {
+                jettyServerOperationException.addContextValue(key, value);
+            });
+            throw jettyServerOperationException;
         }
 
         final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
@@ -78,8 +85,14 @@ public class Application {
         try {
             server.stop();
         } catch (Exception e) {
-            LOG.error("Failed to start Embedded Jetty Server at port: {}", configuration.getJettyServerPort(), e);
-            throw new RuntimeException();
+            InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
+            ImmutableMap<String, String> instanceMetadataMap = ImmutableMap.copyOf(instanceMetadata.asMap());
+            String message = "Failed to start Embedded Jetty Server at port: "+configuration.getJettyServerPort();
+            JettyServerOperationException jettyServerOperationException = new JettyServerOperationException(message, e);
+            instanceMetadataMap.forEach((key, value) -> {
+                jettyServerOperationException.addContextValue(key, value);
+            });
+            throw jettyServerOperationException;
         }
     }
 
