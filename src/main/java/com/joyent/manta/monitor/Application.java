@@ -64,14 +64,7 @@ public class Application {
         try {
             server.start();
         } catch (Exception e) {
-            InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
-            ImmutableMap<String, String> instanceMetadataMap = ImmutableMap.copyOf(instanceMetadata.asMap());
-            String message = "Failed to start Embedded Jetty Server at port: "+configuration.getJettyServerPort()+". Additional context is as follows:";
-            StringBuffer messageBuffer = new StringBuffer(message);
-            instanceMetadataMap.forEach((key, value) -> {
-                messageBuffer.append("\n").append(key).append(" : ").append(value);
-            });
-            LOG.error(messageBuffer.toString(), e);
+            copyContextToException(injector, configuration, e, "Failed to start Embedded Jetty Server at port");
             System.exit(1);
         }
 
@@ -86,14 +79,7 @@ public class Application {
         try {
             server.stop();
         } catch (Exception e) {
-            InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
-            ImmutableMap<String, String> instanceMetadataMap = ImmutableMap.copyOf(instanceMetadata.asMap());
-            String message = "Failed to stop Embedded Jetty Server at port: "+configuration.getJettyServerPort()+". Additional context is as follows:";
-            StringBuffer messageBuffer = new StringBuffer(message);
-            instanceMetadataMap.forEach((key, value) -> {
-                messageBuffer.append("\n").append(key).append(" : ").append(value);
-            });
-            LOG.error(messageBuffer.toString(), e);
+            copyContextToException(injector, configuration, e, "Failed to stop Embedded Jetty Server at port");
             System.exit(1);
         }
     }
@@ -161,5 +147,21 @@ public class Application {
         }
 
         return configUri;
+    }
+
+    private static void copyContextToException(final Injector injector,
+                                               final Configuration configuration,
+                                               final Exception e,
+                                               final String s) {
+        InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
+        StringBuilder messageBuffer = new StringBuilder();
+        instanceMetadata.asMap().forEach((key, value) -> {
+            messageBuffer.append(System.lineSeparator()).append(key).append(" : ").append(value);
+        });
+
+        String message = String.format("%s %d. Additional context is as follows:%s",
+                s, configuration.getJettyServerPort(), messageBuffer);
+
+        LOG.error(message, e);
     }
 }
