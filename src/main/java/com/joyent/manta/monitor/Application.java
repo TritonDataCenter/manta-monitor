@@ -66,12 +66,13 @@ public class Application {
         } catch (Exception e) {
             InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
             ImmutableMap<String, String> instanceMetadataMap = ImmutableMap.copyOf(instanceMetadata.asMap());
-            String message = "Failed to start Embedded Jetty Server at port: "+configuration.getJettyServerPort();
-            JettyServerOperationException jettyServerOperationException = new JettyServerOperationException(message, e);
+            String message = "Failed to start Embedded Jetty Server at port: "+configuration.getJettyServerPort()+". Additional context is as follows:";
+            StringBuffer messageBuffer = new StringBuffer(message);
             instanceMetadataMap.forEach((key, value) -> {
-                jettyServerOperationException.addContextValue(key, value);
+                messageBuffer.append("\n").append(key).append(" : ").append(value);
             });
-            throw jettyServerOperationException;
+            LOG.error(messageBuffer.toString(), e);
+            System.exit(1);
         }
 
         final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
@@ -87,12 +88,13 @@ public class Application {
         } catch (Exception e) {
             InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
             ImmutableMap<String, String> instanceMetadataMap = ImmutableMap.copyOf(instanceMetadata.asMap());
-            String message = "Failed to start Embedded Jetty Server at port: "+configuration.getJettyServerPort();
-            JettyServerOperationException jettyServerOperationException = new JettyServerOperationException(message, e);
+            String message = "Failed to stop Embedded Jetty Server at port: "+configuration.getJettyServerPort()+". Additional context is as follows:";
+            StringBuffer messageBuffer = new StringBuffer(message);
             instanceMetadataMap.forEach((key, value) -> {
-                jettyServerOperationException.addContextValue(key, value);
+                messageBuffer.append("\n").append(key).append(" : ").append(value);
             });
-            throw jettyServerOperationException;
+            LOG.error(messageBuffer.toString(), e);
+            System.exit(1);
         }
     }
 
