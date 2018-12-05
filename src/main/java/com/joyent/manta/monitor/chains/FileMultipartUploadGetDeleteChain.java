@@ -48,6 +48,6 @@ public class FileMultipartUploadGetDeleteChain extends MantaOperationsChain {
                                              final InstanceMetadata metadata,
                                              @Named("SharedStats") final Map<String, AtomicLong> clientStats,
                                              final CustomPrometheusCollector customPrometheusCollector) {
-        super(COMMANDS, reporter, requestFactory, metadata, clientStats,customPrometheusCollector);
+        super(COMMANDS, reporter, requestFactory, metadata, clientStats, customPrometheusCollector);
     }
 }

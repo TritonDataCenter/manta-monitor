@@ -23,6 +23,9 @@ import java.util.function.Function;
 
 import static com.joyent.manta.client.MantaClient.SEPARATOR;
 
+/**
+ * Class that executes the {@link MantaOperationsChain} threads.
+ */
 public class ChainRunner {
     private static final Logger LOG = LoggerFactory.getLogger(ChainRunner.class);
 

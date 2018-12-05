@@ -11,6 +11,9 @@ import java.util.function.Function;
 
 import static com.joyent.manta.client.MantaClient.SEPARATOR;
 
+/**
+ * Class that generates file path based on SHA256, to be used to execute the {@link com.joyent.manta.monitor.commands}.
+ */
 public class GeneratePathBasedOnSHA256 implements Function<byte[], String> {
     private static final char[] DIGITS =
             {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -32,7 +35,7 @@ public class GeneratePathBasedOnSHA256 implements Function<byte[], String> {
             final char two = DIGITS[0x0F & b];
             builder.append(one).append(two);
 
-            if ( (i+1) % 2 == 0) {
+            if ((i + 1) % 2 == 0) {
                 builder.append(SEPARATOR);
             }
         }

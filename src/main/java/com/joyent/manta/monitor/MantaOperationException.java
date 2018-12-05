@@ -10,6 +10,10 @@ package com.joyent.manta.monitor;
 import org.apache.commons.lang3.exception.ContextedRuntimeException;
 import org.apache.commons.lang3.exception.ExceptionContext;
 
+/**
+ * An exception class that provides additional contexts to the errors arising out of the failure to connect and
+ * perform operations on the manta client.
+ */
 public class MantaOperationException extends ContextedRuntimeException {
     private static final long serialVersionUID = -1269054951271990255L;
 

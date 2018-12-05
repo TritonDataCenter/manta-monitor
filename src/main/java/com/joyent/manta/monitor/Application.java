@@ -7,7 +7,6 @@
  */
 package com.joyent.manta.monitor;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.joyent.manta.client.MantaClient;
@@ -39,11 +38,11 @@ public class Application {
     }
 
     /**
-     * Entry point to the application
+     * Entry point to the application.
      * @param args requires a single element array with the first element being the URI to a config file
      * @throws InterruptedException thrown when interrupted
      */
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(final String[] args) throws InterruptedException {
         if (args.length == 0) {
             System.err.println("Manta monitor requires a single parameter "
                     + "specifying the URL its the JSON configuration file");

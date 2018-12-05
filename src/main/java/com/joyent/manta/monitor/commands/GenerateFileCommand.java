@@ -22,6 +22,9 @@ import java.time.LocalDate;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 
+/**
+ * This {@link org.apache.commons.chain.Command} implementation generates the test file.
+ */
 public class GenerateFileCommand implements MantaOperationCommand {
     public static final GenerateFileCommand INSTANCE = new GenerateFileCommand();
 

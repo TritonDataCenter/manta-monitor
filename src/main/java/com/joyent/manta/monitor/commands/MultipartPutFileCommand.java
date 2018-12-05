@@ -64,7 +64,7 @@ public class MultipartPutFileCommand extends PutFileCommand {
 
         if (fileSize < multipartManager.getMinimumPartSize()) {
             String msg = String.format("File size too small for multipart upload"
-                            +" [minimum_size=%d,actual_size=%d]",
+                            + " [minimum_size=%d,actual_size=%d]",
                     multipartManager.getMinimumPartSize(), fileSize);
             throw new IllegalArgumentException(msg);
         }
@@ -99,7 +99,7 @@ public class MultipartPutFileCommand extends PutFileCommand {
 
         try (InputStream pathIn = Files.newInputStream(testFilePath)) {
             for (int i = 0; i < chunkSizes.length; i++) {
-                final int partNumber = i+1;
+                final int partNumber = i + 1;
                 final long chunkSize = chunkSizes[i];
 
                 BoundedInputStream bounded = new BoundedInputStream(pathIn, chunkSize);

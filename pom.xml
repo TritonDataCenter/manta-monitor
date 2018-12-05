@@ -29,15 +29,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <maven.min.version>3.0</maven.min.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <checkstyle.skip>false</checkstyle.skip>
 
         <!-- Dependency versions -->
         <dependency.slfj.version>1.7.25</dependency.slfj.version>
+        <dependency.checkstyle.version>8.2</dependency.checkstyle.version>
+        <dependency.java-manta-client-unshaded.version>3.3.0</dependency.java-manta-client-unshaded.version>
+        <dependency.honeybadger-java.version>2.0.1</dependency.honeybadger-java.version>
+        <dependency.guice.version>4.2.2</dependency.guice.version>
+        <dependency.commons-chain.version>1.1</dependency.commons-chain.version>
+        <dependency.commons-text.version>1.1</dependency.commons-text.version>
+        <dependency.annotations.version>16.0.3</dependency.annotations.version>
+        <dependency.jackson-annotations.version>2.9.7</dependency.jackson-annotations.version>
+        <dependency.guice-servlet.version>4.2.2</dependency.guice-servlet.version>
+        <dependency.simpleclient.version>0.5.0</dependency.simpleclient.version>
+        <dependency.simpleclient_hotspot.version>0.5.0</dependency.simpleclient_hotspot.version>
+        <dependency.simpleclient_servlet.version>0.5.0</dependency.simpleclient_servlet.version>
+        <dependency.mockito-core.version>2.23.4</dependency.mockito-core.version>
+        <dependency.guice-jersey.version>1.0.4</dependency.guice-jersey.version>
 
         <!-- Plugin versions -->
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>3.0.0</maven-dependency-plugin.version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
         <maven-extra-enforcer-rules.version>1.0-beta-7</maven-extra-enforcer-rules.version>
+        <maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
     </properties>
 
     <dependencies>
@@ -64,7 +80,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <dependency>
             <groupId>com.joyent.manta</groupId>
             <artifactId>java-manta-client-unshaded</artifactId>
-            <version>3.2.5</version>
+            <version>${dependency.java-manta-client-unshaded.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -75,7 +91,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <dependency>
             <groupId>io.honeybadger</groupId>
             <artifactId>honeybadger-java</artifactId>
-            <version>2.0.0</version>
+            <version>${dependency.honeybadger-java.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.httpcomponents</groupId>
@@ -94,47 +110,47 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>4.0</version>
+            <version>${dependency.guice.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-chain</groupId>
             <artifactId>commons-chain</artifactId>
-            <version>1.1</version>
+            <version>${dependency.commons-chain.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>1.1</version>
+            <version>${dependency.commons-text.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>16.0.1</version>
+            <version>${dependency.annotations.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.9.0</version>
+            <version>${dependency.jackson-annotations.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-servlet</artifactId>
-            <version>4.2.1</version>
+            <version>${dependency.guice-servlet.version}</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
-            <version>0.5.0</version>
+            <version>${dependency.simpleclient.version}</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
-            <version>0.5.0</version>
+            <version>${dependency.simpleclient_hotspot.version}</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_servlet</artifactId>
-            <version>0.5.0</version>
+            <version>${dependency.simpleclient_servlet.version}</version>
         </dependency>
         <!-- Test Dependencies -->
 
@@ -153,13 +169,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.16.0</version>
+            <version>${dependency.mockito-core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.logz</groupId>
             <artifactId>guice-jersey</artifactId>
-            <version>1.0.3</version>
+            <version>${dependency.guice-jersey.version}</version>
         </dependency>
     </dependencies>
 
@@ -266,6 +282,35 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                         <version>${maven-extra-enforcer-rules.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${dependency.checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <skip>${checkstyle.skip}</skip>
+                    <suppressionsLocation>suppressions.xml</suppressionsLocation>
+                    <violationSeverity>warning</violationSeverity>
+                    <excludes>**/generated/**/*</excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor;
 
 import com.google.common.collect.ImmutableMap;
@@ -12,7 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Iterator;
+import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -25,6 +37,10 @@ public class ThrowableProcessor {
 
     private final HoneyBadgerRequestFactory requestFactory;
 
+    /**
+     * Class that post processes {@link Throwable} instances so that they are
+     * presented in a useful way for Honeybadger reporting.
+     */
     public class ProcessedResults {
         public final Throwable throwable;
         public final Throwable rootCause;

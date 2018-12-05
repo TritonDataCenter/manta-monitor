@@ -10,7 +10,12 @@ package com.joyent.manta.monitor.chains;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.joyent.manta.exception.MantaClientHttpResponseException;
-import com.joyent.manta.monitor.*;
+import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
+import com.joyent.manta.monitor.InstanceMetadata;
+import com.joyent.manta.monitor.CustomPrometheusCollector;
+import com.joyent.manta.monitor.MBeanServerOperationException;
+import com.joyent.manta.monitor.ThrowableProcessor;
+import com.joyent.manta.monitor.MantaOperationContext;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import io.honeybadger.reporter.NoticeReporter;
 import io.honeybadger.reporter.dto.Context;
@@ -26,11 +31,18 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.net.SocketTimeoutException;
-import java.util.*;
+import java.util.Set;
+import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * This extension of {@link ChainBase} provides methods to execute chain of manta operations and
+ * logs and reports errors to honeybadger.
+ */
 public class MantaOperationsChain extends ChainBase {
     private static final Logger LOG = LoggerFactory.getLogger(MantaOperationsChain.class);
     private final NoticeReporter reporter;
@@ -60,7 +72,7 @@ public class MantaOperationsChain extends ChainBase {
         this.metadata = metadata;
         this.throwableProcessor = new ThrowableProcessor(requestFactory);
         this.clientStats = clientStats;
-        this.customPrometheusCollector= customPrometheusCollector;
+        this.customPrometheusCollector = customPrometheusCollector;
     }
 
     public void execute(final MantaOperationContext context) {
@@ -70,13 +82,13 @@ public class MantaOperationsChain extends ChainBase {
             LOG.info("{} starting", getClass().getSimpleName());
             super.execute(context);
             throwable = context.getException();
-            if(LOG.isInfoEnabled()) {
+            if (LOG.isInfoEnabled()) {
                 LOG.info("Stopwatch recorded {} milliseconds", context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
                 AtomicLong elapsedTime = new AtomicLong(context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
                 clientStats.put(getClass().getSimpleName(), elapsedTime);
             }
             //Register the collector only once.
-            if(completionStatus.compareAndSet(false, true)) {
+            if (completionStatus.compareAndSet(false, true)) {
                 CollectorRegistry.defaultRegistry.register(customPrometheusCollector);
             }
         } catch (Exception e) {
@@ -120,8 +132,8 @@ public class MantaOperationsChain extends ChainBase {
                 Request request = results.request;
                 Context context = request.getContext();
                 ImmutableSet<String> contextKeySet = ImmutableSet.copyOf(context.keySet());
-                for(String key : contextKeySet) {
-                    ( (MBeanServerOperationException) t ).setContextValue(key, context.get(key));
+                for (String key : contextKeySet) {
+                    ((MBeanServerOperationException) t).setContextValue(key, context.get(key));
                 }
                 LOG.error(message, t);
                 System.exit(1);

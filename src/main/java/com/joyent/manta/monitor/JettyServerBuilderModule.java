@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor;
 
 import com.google.inject.Binder;
@@ -7,10 +14,13 @@ import com.joyent.manta.monitor.config.Configuration;
 import io.logz.guice.jersey.JerseyModule;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
 
+/**
+ * Class that provides {@link MantaMonitorModule} dependencies to the {@link MantaMonitorServletModule}.
+ */
 public class JettyServerBuilderModule implements Module {
     private final int jettyServerPort;
 
-    public JettyServerBuilderModule(Injector applicationInjector) {
+    public JettyServerBuilderModule(final Injector applicationInjector) {
         this.jettyServerPort = applicationInjector.getInstance(Configuration.class).getJettyServerPort();
     }
 

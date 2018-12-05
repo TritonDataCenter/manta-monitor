@@ -10,6 +10,9 @@ package com.joyent.manta.monitor.chains;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.LongAdder;
 
+/**
+ * This implementation of {@link ThreadFactory} creates threads for the running the {@link MantaOperationsChain}.
+ */
 public class ChainThreadFactory implements ThreadFactory {
     private final LongAdder count = new LongAdder();
     private final ThreadGroup threadGroup;

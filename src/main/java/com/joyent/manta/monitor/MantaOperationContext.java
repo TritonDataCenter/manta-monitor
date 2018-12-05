@@ -21,6 +21,9 @@ import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Class that represents the manta operation context for the manta client.
+ */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class MantaOperationContext extends ConcurrentHashMap implements Context {
     private static final long serialVersionUID = -81700974895811279L;
@@ -118,7 +121,7 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
         return (Path)get(TEST_FILE_KEY);
     }
 
-    public MantaOperationContext setTestFile(final Path testFile){
+    public MantaOperationContext setTestFile(final Path testFile) {
         put(TEST_FILE_KEY, requireNonNull(testFile));
         return this;
     }

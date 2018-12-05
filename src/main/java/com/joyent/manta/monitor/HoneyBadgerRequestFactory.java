@@ -10,7 +10,11 @@ package com.joyent.manta.monitor;
 import com.google.common.collect.ImmutableSet;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.http.MantaHttpHeaders;
-import io.honeybadger.reporter.dto.*;
+import io.honeybadger.reporter.dto.Request;
+import io.honeybadger.reporter.dto.Params;
+import io.honeybadger.reporter.dto.Session;
+import io.honeybadger.reporter.dto.CgiData;
+import io.honeybadger.reporter.dto.Context;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionContext;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -19,10 +23,17 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.net.URI;
-import java.util.*;
+import java.util.Map;
+import java.util.List;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+/**
+ * Class that provides method to build the honeybadger reporter request.
+ */
 public class HoneyBadgerRequestFactory {
     private final com.joyent.manta.config.ConfigContext mantaConfig;
     private final io.honeybadger.reporter.config.ConfigContext hbConfig;

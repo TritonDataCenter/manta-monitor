@@ -1,10 +1,16 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor;
 
 import com.google.common.collect.ImmutableList;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CounterMetricFamily;
 import io.prometheus.client.GaugeMetricFamily;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -12,17 +18,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.slf4j.Logger;
-
+/**
+ * Class that collects and presents JMX metrics from {@link JMXMetricsCollector} and presents
+ * them in Prometheus exposition format.
+ */
 public class CustomPrometheusCollector extends Collector {
-    private final Logger LOG = LoggerFactory.getLogger(CustomPrometheusCollector.class);
-
     private final JMXMetricsCollector jmxMetricsCollector;
     private final Map<String, AtomicLong> clientStats;
 
     @Inject
-    CustomPrometheusCollector(@Named("JMXMetricsCollector") JMXMetricsCollector jmxMetricsCollector,
-                              @Named("SharedStats") Map<String, AtomicLong> clientStats) {
+    CustomPrometheusCollector(@Named("JMXMetricsCollector") final JMXMetricsCollector jmxMetricsCollector,
+                              @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
         this.jmxMetricsCollector = jmxMetricsCollector;
         this.clientStats = clientStats;
     }

@@ -1,15 +1,31 @@
+/*
+ * Copyright (c) 2018, Joyent, Inc. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.joyent.manta.monitor;
 
 import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
-import javax.management.*;
+import javax.management.AttributeNotFoundException;
+import javax.management.MBeanException;
+import javax.management.ReflectionException;
+import javax.management.InstanceNotFoundException;
+import javax.management.ObjectName;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
 
 import javax.validation.ValidationException;
 
 import java.io.InvalidObjectException;
 import java.util.Set;
 
+/**
+ * Class that provides methods to extract and validate JMX metrics from the platform MBeanServer.
+ */
 public class JMXMetricsCollector {
     private final PlatformMbeanServerProvider platformMbeanServerProvider;
 
@@ -17,13 +33,13 @@ public class JMXMetricsCollector {
     private static final String MBEAN_OBJECT_KEY = "00";
 
     @Inject
-    public JMXMetricsCollector(PlatformMbeanServerProvider platformMbeanServerProvider) {
+    public JMXMetricsCollector(final PlatformMbeanServerProvider platformMbeanServerProvider) {
         this.platformMbeanServerProvider = platformMbeanServerProvider;
     }
 
     @Nullable
     @SuppressWarnings("unchecked")
-    public <T extends Number> T getMBeanAttributeValue(String mBeanObjectName, String attribute, final Class<T> returnType) {
+    public <T extends Number> T getMBeanAttributeValue(final String mBeanObjectName, final String attribute, final Class<T> returnType) {
         ObjectName objectName = getObjectNameFromString(mBeanObjectName);
         if (objectName == null) {
             String message = "Requested MBean Object not found";
@@ -95,7 +111,7 @@ public class JMXMetricsCollector {
         return null;
     }
 
-    public boolean validateMbeanObject(String objectName) {
+    public boolean validateMbeanObject(final String objectName) {
         ObjectName mbeanObject = getObjectNameFromString(objectName);
         boolean response = false;
         if (mbeanObject != null) {
@@ -114,14 +130,14 @@ public class JMXMetricsCollector {
     }
 
     @Nullable
-    private ObjectName getObjectNameFromString(String objectName) {
-        String objectNameWithDomain = MBEAN_DOMAIN+":"+MBEAN_OBJECT_KEY+"="+objectName+",*";
-        MBeanServer mBeanServer =platformMbeanServerProvider.getPlatformMBeanServer();
+    private ObjectName getObjectNameFromString(final String objectName) {
+        String objectNameWithDomain = MBEAN_DOMAIN + ":" + MBEAN_OBJECT_KEY + "=" + objectName + ",*";
+        MBeanServer mBeanServer = platformMbeanServerProvider.getPlatformMBeanServer();
         ObjectName responseObjectName = null;
         try {
             ObjectName mbeanObjectName = new ObjectName(objectNameWithDomain);
             Set<ObjectName> objectNames = mBeanServer.queryNames(mbeanObjectName, null);
-            for(ObjectName object: objectNames) {
+            for (ObjectName object: objectNames) {
                 responseObjectName = object;
             }
         } catch (MalformedObjectNameException mfe) {

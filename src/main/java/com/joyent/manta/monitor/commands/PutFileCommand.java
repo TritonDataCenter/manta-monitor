@@ -23,6 +23,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This {@link org.apache.commons.chain.Command} implementation performs mput.
+ */
 public class PutFileCommand implements MantaOperationCommand {
     public static final PutFileCommand INSTANCE = new PutFileCommand();
 
