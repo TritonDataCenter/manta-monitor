@@ -19,8 +19,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Class that collects and presents JMX metrics from {@link JMXMetricsCollector} and presents
- * them in Prometheus exposition format.
+ * Class that collects JMX metrics from {@link JMXMetricsCollector} and presents them in Prometheus exposition format.
  */
 public class CustomPrometheusCollector extends Collector {
     private final JMXMetricsCollector jmxMetricsCollector;

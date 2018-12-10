@@ -24,7 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This {@link org.apache.commons.chain.Command} implementation performs mput.
+ * This {@link org.apache.commons.chain.Command} implementation performs uploading a file to simulate a user mput command
+ * and thereby gather metrics for requests-put.
  */
 public class PutFileCommand implements MantaOperationCommand {
     public static final PutFileCommand INSTANCE = new PutFileCommand();

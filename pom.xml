@@ -22,6 +22,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             <organization>Joyent</organization>
             <organizationUrl>joyent.com</organizationUrl>
         </developer>
+        <developer>
+            <name>Sachin Gupta</name>
+            <email>sachin.gupta@joyent.com</email>
+            <organization>Joyent</organization>
+            <organizationUrl>joyent.com</organizationUrl>
+        </developer>
     </developers>
 
     <properties>

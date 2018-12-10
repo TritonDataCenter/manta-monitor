@@ -11,7 +11,7 @@ import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.MantaOperationContext;
 
 /**
- * This {@link org.apache.commons.chain.Command} implementation creates dir to perform mput.
+ * This {@link org.apache.commons.chain.Command} implementation creates a dir to perform the cli command mput.
  */
 public class MkdirCommand implements MantaOperationCommand {
     public static final MkdirCommand INSTANCE = new MkdirCommand();

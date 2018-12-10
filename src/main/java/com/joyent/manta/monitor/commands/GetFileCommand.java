@@ -20,7 +20,7 @@ import java.util.Arrays;
 import static java.util.Objects.requireNonNull;
 
 /**
- * This {@link org.apache.commons.chain.Command} implementation performs mget.
+ * This {@link org.apache.commons.chain.Command} implementation performs manta object get using the cli command mget.
  */
 public class GetFileCommand implements MantaOperationCommand {
     public static final GetFileCommand INSTANCE = new GetFileCommand();
