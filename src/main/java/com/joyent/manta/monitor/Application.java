@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -36,7 +37,13 @@ public class Application {
     static {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
     }
-
+    private static final String[] MANTA_REQUIRED_PARAMS = {"MANTA_USER",
+                                                          "MANTA_URL",
+                                                          "ENV",
+                                                          "HONEYBADGER_API_KEY",
+                                                          "MANTA_METRIC_REPORTER_MODE",
+                                                          "MANTA_HTTP_RETRIES",
+                                                          "CONFIG_FILE"};
     /**
      * Entry point to the application.
      * @param args requires a single element array with the first element being the URI to a config file
@@ -49,6 +56,20 @@ public class Application {
             System.exit(1);
         }
 
+        ArrayList<String> missingEnvParams = new ArrayList<>();
+        for (int i = 0; i < MANTA_REQUIRED_PARAMS.length; i++) {
+            if (System.getenv(MANTA_REQUIRED_PARAMS[i]) == null) {
+                missingEnvParams.add(MANTA_REQUIRED_PARAMS[i]);
+
+            }
+        }
+        if (!missingEnvParams.isEmpty()) {
+            for (String s : missingEnvParams) {
+                LOG.error("Manta monitor requires the env variable {}. "
+                        + "Please set the same and re-run the application.", s);
+            }
+            System.exit(1);
+        }
         final URI configUri = Objects.requireNonNull(parseConfigFileURI(args[0]));
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
