@@ -60,7 +60,7 @@ public class CustomPrometheusCollector extends Collector {
     }
 
     private void importRequestsGet(final ImmutableList.Builder<MetricFamilySamples> builder) {
-        builder.add((new GaugeMetricFamily("requests_put_mean",
+        builder.add((new GaugeMetricFamily("requests_get_mean",
                 "Get Requests Mean Value",
                 retrieveMBeanAttributeValue("requests-get", "Mean", Double.class))));
         builder.add((new GaugeMetricFamily("requests_get_50thPercentile",
@@ -102,7 +102,7 @@ public class CustomPrometheusCollector extends Collector {
     }
 
     private void importRetries(final ImmutableList.Builder<MetricFamilySamples> builder) {
-        builder.add((new GaugeMetricFamily("retry",
+        builder.add((new GaugeMetricFamily("retries_count",
                 "Number of Retries",
                 retrieveMBeanAttributeValue("retries", "Count", Long.class))));
         builder.add((new GaugeMetricFamily("retries_mean_rate",
