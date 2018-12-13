@@ -8,7 +8,7 @@ docker run -d \
     --name manta-monitor-1
     --memory 1G \
     --label triton.cns.services=manta-monitor \
-    -e ENV=production \
+    -e JAVA_ENV=production \
     -e HONEYBADGER_API_KEY=XXXXXXXX \
     -e CONFIG_FILE=manta:///user/stor/manta-monitor-config.json \
     -e MANTA_USER=user \

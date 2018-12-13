@@ -39,7 +39,7 @@ public class Application {
     }
     private static final String[] MANTA_REQUIRED_PARAMS = {"MANTA_USER",
                                                           "MANTA_URL",
-                                                          "ENV",
+                                                          "JAVA_ENV",
                                                           "HONEYBADGER_API_KEY",
                                                           "MANTA_METRIC_REPORTER_MODE",
                                                           "MANTA_HTTP_RETRIES",
