@@ -23,6 +23,8 @@ docker run -d \
 The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry failed HTTP requests. 
 Setting this value to zero disables retries completely.
 Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) for more details about the parameters
+
+To build and run the application from a local docker image refer [here](doc/docker-build-setup.md)
 ## Installation from source
 In order to build this project you need the following:
 

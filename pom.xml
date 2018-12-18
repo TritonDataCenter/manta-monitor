@@ -39,26 +39,26 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         <!-- Dependency versions -->
         <dependency.slfj.version>1.7.25</dependency.slfj.version>
-        <dependency.checkstyle.version>8.2</dependency.checkstyle.version>
+        <dependency.checkstyle.version>8.15</dependency.checkstyle.version>
         <dependency.java-manta-client-unshaded.version>3.3.0</dependency.java-manta-client-unshaded.version>
         <dependency.honeybadger-java.version>2.0.1</dependency.honeybadger-java.version>
         <dependency.guice.version>4.2.2</dependency.guice.version>
         <dependency.commons-chain.version>1.1</dependency.commons-chain.version>
-        <dependency.commons-text.version>1.1</dependency.commons-text.version>
+        <dependency.commons-text.version>1.6</dependency.commons-text.version>
         <dependency.annotations.version>16.0.3</dependency.annotations.version>
-        <dependency.jackson-annotations.version>2.9.7</dependency.jackson-annotations.version>
+        <dependency.jackson-annotations.version>2.9.8</dependency.jackson-annotations.version>
         <dependency.guice-servlet.version>4.2.2</dependency.guice-servlet.version>
-        <dependency.simpleclient.version>0.5.0</dependency.simpleclient.version>
-        <dependency.simpleclient_hotspot.version>0.5.0</dependency.simpleclient_hotspot.version>
-        <dependency.simpleclient_servlet.version>0.5.0</dependency.simpleclient_servlet.version>
+        <dependency.simpleclient.version>0.6.0</dependency.simpleclient.version>
+        <dependency.simpleclient_hotspot.version>0.6.0</dependency.simpleclient_hotspot.version>
+        <dependency.simpleclient_servlet.version>0.6.0</dependency.simpleclient_servlet.version>
         <dependency.mockito-core.version>2.23.4</dependency.mockito-core.version>
-        <dependency.guice-jersey.version>1.0.4</dependency.guice-jersey.version>
+        <dependency.guice-jersey.version>1.0.5</dependency.guice-jersey.version>
 
         <!-- Plugin versions -->
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>3.0.0</maven-dependency-plugin.version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-        <maven-extra-enforcer-rules.version>1.0-beta-7</maven-extra-enforcer-rules.version>
+        <maven-extra-enforcer-rules.version>1.1</maven-extra-enforcer-rules.version>
         <maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
     </properties>
 
