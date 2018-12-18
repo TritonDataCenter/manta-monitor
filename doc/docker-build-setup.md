@@ -1,13 +1,13 @@
-##Build a local image from the supplied Dockerfile
+## Build a local image from the supplied Dockerfile
 
 Follow the steps to build a docker image, from the project directory
 
-###Step 1: Build the project
+### Step 1: Build the project
 ```
 manta-monitor# mvn clean install
 ```
 
-###Step 2: Build the image
+### Step 2: Build the image
 ```
 manta-monitor# docker build . -t manta-monitor
 ```
@@ -20,7 +20,7 @@ manta-monitor       latest              3abf4580bd9d        4 days ago          
 ubuntu              xenial              a51debf7e1eb        4 weeks ago         116MB
 ``` 
 
-###Step 3: Run the application using the image created above, as follows:
+### Step 3: Run the application using the image created above, as follows:
 ```
 docker run -d \
     --name manta-monitor-1
