@@ -73,4 +73,6 @@ RUN groupadd -g 1244 manta-monitor && \
     mkdir -p /opt/manta-monitor/tmp && \
     find /opt/manta-monitor/bin -type f -exec chmod +x '{}' \;
 
+EXPOSE 8090 8090
+
 CMD /opt/manta-monitor/bin/run

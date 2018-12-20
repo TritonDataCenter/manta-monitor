@@ -22,7 +22,7 @@ ubuntu              xenial              a51debf7e1eb        4 weeks ago         
 
 ### Step 3: Run the application using the image created above, as follows:
 ```
-docker run -d \
+docker run -p 8090:8090 -d \
     --name manta-monitor-1
     --memory 1G \
     --label triton.cns.services=manta-monitor \
