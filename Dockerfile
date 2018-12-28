@@ -64,7 +64,7 @@ COPY docker_root/usr /usr
 COPY docker_root/opt /opt
 
 # Download the manta-monitor binary from the repo
-RUN curl --retry 7 --fail -Lso /tmp/manta-monitor.jar "https://github.com/joyent/manta-monitor/releases/download/v$MANTA_MONITOR_VERSION/manta-monitor-$MANTA_MONITOR_VERSION-SNAPSHOT-jar-with-dependencies.jar" && \
+RUN curl --retry 7 --fail -Lso /tmp/manta-monitor.jar "https://github.com/joyent/manta-monitor/releases/download/v$MANTA_MONITOR_VERSION/manta-monitor-$MANTA_MONITOR_VERSION-jar-with-dependencies.jar" && \
     mv /tmp/manta-monitor.jar /opt/manta-monitor/lib/manta-monitor.jar && \
     chmod +x /opt/manta-monitor/lib/manta-monitor.jar
 
