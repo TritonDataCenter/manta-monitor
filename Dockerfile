@@ -16,6 +16,7 @@ ENV MANTA_MONITOR_VERSION=1.0.0-SNAPSHOT
 ENV ZULE_JCE_POLICY_CHECKSUM ebe83e1bf25de382ce093cf89e93a944
 ENV JAVA_HOME /usr/lib/jvm/zulu-8-amd64
 ENV INSTANCE_METADATA_PROPS_FILE /opt/manta-monitor/tmp/instance.properties
+ENV MANTA_MONITOR_VERSION 1.0.0
 
 # Installed tools:
 # ==============================================================================
@@ -61,7 +62,11 @@ COPY docker_root/etc /etc
 COPY docker_root/usr /usr
 # Add application directory
 COPY docker_root/opt /opt
-COPY target/manta-monitor-1.0.0-SNAPSHOT-jar-with-dependencies.jar /opt/manta-monitor/lib/manta-monitor.jar
+
+# Download the manta-monitor binary from the repo
+RUN curl --retry 7 --fail -Lso /tmp/manta-monitor.jar "https://github.com/joyent/manta-monitor/releases/download/v$MANTA_MONITOR_VERSION/manta-monitor-$MANTA_MONITOR_VERSION-SNAPSHOT-jar-with-dependencies.jar" && \
+    mv /tmp/manta-monitor.jar /opt/manta-monitor/lib/manta-monitor.jar && \
+    chmod +x /opt/manta-monitor/lib/manta-monitor.jar
 
 # Configure runtime user and permissions
 RUN groupadd -g 1244 manta-monitor && \
