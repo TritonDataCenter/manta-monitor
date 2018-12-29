@@ -2,17 +2,13 @@
 
 Follow the steps to build a docker image, from the project directory
 
-### Step 1: Build the project
+### Step 1: Build the image
 ```
-manta-monitor# mvn clean install
-```
-
-### Step 2: Build the image
-```
-manta-monitor# docker build . -t manta-monitor
+manta-monitor# docker build . -t joyent/manta-monitor
 ```
 
-The above command will build the latest image of manta-monitor. You can check the same as follows:
+The above command will build the latest image of manta-monitor. You can check 
+the same as follows:
 ```
 manta-monitor# docker images
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -20,7 +16,7 @@ manta-monitor       latest              3abf4580bd9d        4 days ago          
 ubuntu              xenial              a51debf7e1eb        4 weeks ago         116MB
 ``` 
 
-### Step 3: Run the application using the image created above, as follows:
+### Step 2: Run the application using the image created above, as follows:
 ```
 docker run -p 8090:8090 -d \
     --name manta-monitor-1
