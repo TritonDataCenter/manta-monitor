@@ -36,7 +36,7 @@ You will need the following env variables ready before adding the run configurat
 * HONEYBADGER_API_KEY
 * MANTA_USER
 * MANTA_KEY_ID
-* ENV = production/development
+* JAVA_ENV = production/development
 * INSTANCE_METADATA_PROPS_FILE = src/test/resources/example-instance-metadata.properties
 * MANTA_METRIC_REPORTER_MODE = JMX
 

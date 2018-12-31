@@ -1,8 +1,21 @@
 # Manta Monitor
 
-## Docker
-Running via Docker:
+## Introduction
+Manta Monitor is a stand-alone Java program that executes a continually running
+workload against a [Manta](https://github.com/joyent/manta) installation. 
+Runtime metrics are collected and exposed via a 
+[Prometheus](https://prometheus.io/) compatible endpoint. Exceptions thrown are
+collected and stored on [honeybader.io](https://www.honeybadger.io/) for later
+diagnosis.
 
+## Docker
+
+In order to make the execution and configuration of Manta Monitor easier, a
+[Docker image is provided](https://hub.docker.com/r/joyent/manta-monitor).
+
+### Run
+
+A typical execution via Docker looks like as follows:
 ```
 docker run -p 8090:8090 -d \
     --name manta-monitor-1
@@ -20,13 +33,20 @@ docker run -p 8090:8090 -d \
     -e MANTA_HTTP_RETRIES=3 \
     joyent/manta-monitor
 ```
-The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry failed HTTP requests. 
-Setting this value to zero disables retries completely.
-Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) for more details about the parameters.
 
+The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry
+failed HTTP requests. Setting this value to zero disables retries completely.
+Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) 
+for more details about the parameters.
 
-To build and run the application from a local docker image refer [here](doc/docker-build-setup.md)
-## Installation from source
+### Build
+
+To build and run the application from a local Docker image refer to the 
+[Docker build documentation](doc/docker-build-setup.md).
+
+## Development
+
+### Build
 In order to build this project you need the following:
 
 * [Java 1.8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
@@ -37,10 +57,17 @@ From command line, go to the project source directory
 $ mvn clean install
 ```
 
-Please follow the documentation [here](doc/intellij-setup.md) to run the application in IntelliJ.
+### IDE Development
 
-## Manta-monitor metrics
-The application exposes metrics in [prometheus exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/), over the port 8090 of the machine where it is being deployed.
+Please follow the documentation [here](doc/intellij-setup.md) to run the 
+application in IntelliJ.
+
+## Metrics
+
+The application exposes metrics in 
+[prometheus exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/), 
+over the port 8090 of the machine where it is being deployed.
+
 An example of the metrics gathered by the application is as follows:
 
 ```
@@ -108,5 +135,8 @@ retries_mean_rate 0.028769379866041778
 # HELP manta_monitor_operation_chain_elapsed_time Total time in milliseconds to complete one chain of operations
 # TYPE manta_monitor_operation_chain_elapsed_time gauge
 manta_monitor_operation_chain_elapsed_time 22677.0
-
 ```
+
+## License
+Manta Monitor is licensed under the MPLv2. Please see the 
+[LICENSE.txt](/LICENSE.txt) file for more details.
