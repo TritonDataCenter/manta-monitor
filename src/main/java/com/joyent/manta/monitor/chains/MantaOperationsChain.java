@@ -52,7 +52,7 @@ public class MantaOperationsChain extends ChainBase {
     private final AtomicBoolean completionStatus = new AtomicBoolean(false);
     private final CustomPrometheusCollector customPrometheusCollector;
 
-    private static final Map<Integer, String> STATUS_CODE_TO_TAG = ImmutableMap.of(
+    private static final ImmutableMap<Integer, String> STATUS_CODE_TO_TAG = ImmutableMap.of(
         HttpStatus.SC_INTERNAL_SERVER_ERROR, "internal-server-error",
         HttpStatus.SC_BAD_GATEWAY, "bad-gateway",
         HttpStatus.SC_GATEWAY_TIMEOUT, "gateway-timeout",

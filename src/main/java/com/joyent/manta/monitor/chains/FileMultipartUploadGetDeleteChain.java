@@ -7,6 +7,7 @@
  */
 package com.joyent.manta.monitor.chains;
 
+import com.google.common.collect.ImmutableList;
 import com.joyent.manta.monitor.CustomPrometheusCollector;
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.InstanceMetadata;
@@ -22,7 +23,6 @@ import io.honeybadger.reporter.NoticeReporter;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -33,7 +33,7 @@ import static com.google.common.collect.ImmutableList.of;
  * that perform a mkdir, multipart file upload, get and delete.
  */
 public class FileMultipartUploadGetDeleteChain extends MantaOperationsChain {
-    private static final List<MantaOperationCommand> COMMANDS = of(
+    private static final ImmutableList<MantaOperationCommand> COMMANDS = of(
             GenerateFileCommand.INSTANCE,
             MkdirCommand.INSTANCE,
             MultipartPutFileCommand.INSTANCE,

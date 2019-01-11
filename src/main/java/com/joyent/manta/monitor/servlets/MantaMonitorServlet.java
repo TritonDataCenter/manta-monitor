@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Singleton
 public class MantaMonitorServlet extends HttpServlet {
     private static final Logger LOG = LoggerFactory.getLogger(MantaMonitorServlet.class);
+    private static final long serialVersionUID = 5240172014702531193L;
     private final Map<String, AtomicLong> clientStats;
 
     @Inject
@@ -35,6 +36,7 @@ public class MantaMonitorServlet extends HttpServlet {
         this.clientStats = clientStats;
     }
 
+    @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
         if (clientStats.size() > 0) {
             response.setContentType("application/json");
