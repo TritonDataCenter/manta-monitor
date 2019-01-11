@@ -116,6 +116,7 @@ public class CustomPrometheusCollector extends Collector {
                 value)));
     }
 
+    @Override
     public List<MetricFamilySamples> collect() {
         final ImmutableList.Builder<MetricFamilySamples> metricFamilySamplesBuilder =
                 ImmutableList.builder();
