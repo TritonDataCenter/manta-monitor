@@ -61,15 +61,6 @@ public class MantaConfigContextProvider implements Provider<ConfigContext> {
      * @param config instance to validate
      */
     private static void validate(final ConfigContext config) {
-        final MetricReporterMode configuredMode = config.getMetricReporterMode();
-
-        if (!MetricReporterMode.JMX.equals(configuredMode)) {
-            String msg = "Metric reporter mode must be set to JMX for "
-                    + "Manta Monitor to operate correctly. Actual setting: %s\n";
-            System.err.printf(msg, configuredMode);
-            System.exit(-1);
-        }
-
         try {
             ConfigContext.validate(config);
         } catch (ConfigurationException e) {
@@ -79,6 +70,27 @@ public class MantaConfigContextProvider implements Provider<ConfigContext> {
             System.err.println(msg);
             System.err.println(e);
             System.exit(1);
+        }
+
+        // Validate JMX is set so that we can query it
+        final MetricReporterMode configuredMode = config.getMetricReporterMode();
+
+        if (!MetricReporterMode.JMX.equals(configuredMode)) {
+            String msg = "Metric reporter mode must be set to JMX for "
+                    + "Manta Monitor to operate correctly. Actual setting: %s\n";
+            System.err.printf(msg, configuredMode);
+            System.exit(-1);
+        }
+
+        /* Validate that retries is greater than zero, so that we can query the
+         * retry rate from JMX.*/
+        final Integer retries = config.getRetries();
+
+        if (retries == null || retries < 1) {
+            String msg = "Retries must be set to a value greater than zero for "
+                    + "Manta Monitor to operate correctly. Actual setting: %s\n";
+            System.err.printf(msg, retries);
+            System.exit(-1);
         }
     }
 }
