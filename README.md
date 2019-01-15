@@ -136,7 +136,7 @@ retries_mean_rate 0.028769379866041778
 # TYPE manta_monitor_operation_chain_elapsed_time gauge
 manta_monitor_operation_chain_elapsed_time 22677.0
 ```
-
+For more details about the metrics refer to the document [here](doc/manta-monitor-metrics.md)
 ## License
 Manta Monitor is licensed under the MPLv2. Please see the 
 [LICENSE.txt](/LICENSE.txt) file for more details.
