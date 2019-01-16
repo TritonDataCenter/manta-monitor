@@ -9,8 +9,6 @@ package com.joyent.manta.monitor;
 
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.config.ConfigContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -20,9 +18,6 @@ import javax.inject.Provider;
  * relevant defaults for this application.
  */
 public class MantaClientProvider implements Provider<MantaClient> {
-    private static final Logger LOG = LoggerFactory.getLogger(MantaClientProvider.class);
-    private static final int DEFAULT_TIMEOUT = 5_000; // 5 seconds in milliseconds
-
     private final Provider<ConfigContext> configProvider;
 
     @Inject
