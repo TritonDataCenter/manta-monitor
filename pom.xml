@@ -234,7 +234,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     <compilerArgs>
                         <arg>-Xlint:all</arg>
                         <arg>-Xlint:-processing</arg>
-                        <arg>-XepDisableWarningsInGeneratedCode</arg>
                     </compilerArgs>
                 </configuration>
                 <dependencies>

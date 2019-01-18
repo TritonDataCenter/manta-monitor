@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This {@link org.apache.commons.chain.Command} implementation performs uploading a file to simulate a user mput command
@@ -55,11 +56,11 @@ public class PutFileCommand implements MantaOperationCommand {
             final UUID requestId = UUID.fromString(response.getRequestId());
             final Integer responseTime = parseResponseTime(response.getHttpHeaders());
             context.getResponseTimes().put(requestId, responseTime);
+            context.getPutRequestStopWatch().add(new AtomicLong(stopwatch.elapsed(TimeUnit.MILLISECONDS)));
         } catch (RuntimeException e) {
             throw new MantaOperationException(e).setPath(filePath);
         } finally {
             Files.deleteIfExists(context.getTestFile());
-            LOG.info("Put operation took: {} milliseconds", stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
 
         return CONTINUE_PROCESSING;

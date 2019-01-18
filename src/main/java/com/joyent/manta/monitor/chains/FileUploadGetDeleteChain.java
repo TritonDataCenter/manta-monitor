@@ -23,6 +23,7 @@ import io.honeybadger.reporter.NoticeReporter;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -47,7 +48,8 @@ public class FileUploadGetDeleteChain extends MantaOperationsChain {
                                     final HoneyBadgerRequestFactory requestFactory,
                                     final InstanceMetadata metadata,
                                     @Named("SharedStats") final Map<String, AtomicLong> clientStats,
+                                    @Named("PutRequestElapsedTime") final ArrayList<AtomicLong> putRequestElapsedTime,
                                     final CustomPrometheusCollector customPrometheusCollector) {
-        super(COMMANDS, reporter, requestFactory, metadata, clientStats, customPrometheusCollector);
+        super(COMMANDS, reporter, requestFactory, metadata, clientStats, putRequestElapsedTime, customPrometheusCollector);
     }
 }

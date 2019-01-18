@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -49,6 +50,7 @@ public class MantaOperationsChain extends ChainBase {
     private final ThrowableProcessor throwableProcessor;
     private final InstanceMetadata metadata;
     private final Map<String, AtomicLong> clientStats;
+    private final ArrayList<AtomicLong> putRequestElapsedTime;
     private final AtomicBoolean completionStatus = new AtomicBoolean(false);
     private final CustomPrometheusCollector customPrometheusCollector;
 
@@ -66,12 +68,14 @@ public class MantaOperationsChain extends ChainBase {
                                 final HoneyBadgerRequestFactory requestFactory,
                                 final InstanceMetadata metadata,
                                 @Named("SharedStats") final Map<String, AtomicLong> clientStats,
+                                @Named("PutRequestElapsedTime") final ArrayList<AtomicLong> putRequestElapsedTime,
                                 final CustomPrometheusCollector customPrometheusCollector) {
         super(commands);
         this.reporter = reporter;
         this.metadata = metadata;
         this.throwableProcessor = new ThrowableProcessor(requestFactory);
         this.clientStats = clientStats;
+        this.putRequestElapsedTime = putRequestElapsedTime;
         this.customPrometheusCollector = customPrometheusCollector;
     }
 
@@ -90,6 +94,9 @@ public class MantaOperationsChain extends ChainBase {
             //Register the collector only once.
             if (completionStatus.compareAndSet(false, true)) {
                 CollectorRegistry.defaultRegistry.register(customPrometheusCollector);
+            }
+            if (!context.getPutRequestStopWatch().isEmpty()) {
+                putRequestElapsedTime.addAll(context.getPutRequestStopWatch());
             }
         } catch (Exception e) {
             throwable = e;

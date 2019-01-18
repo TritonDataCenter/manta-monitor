@@ -17,6 +17,7 @@ import com.joyent.manta.monitor.config.ConfigurationProvider;
 import io.honeybadger.reporter.NoticeReporter;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -67,6 +68,10 @@ public class MantaMonitorModule implements Module {
         binder.bind(new TypeLiteral<Map<String, AtomicLong>>() { })
                 .annotatedWith(Names.named("SharedStats"))
                 .toProvider(ConcurrentHashMap::new)
+                .asEagerSingleton();
+        binder.bind(new TypeLiteral<ArrayList<AtomicLong>>() { })
+                .annotatedWith(Names.named("PutRequestElapsedTime"))
+                .toProvider(ArrayList::new)
                 .asEagerSingleton();
         binder.bind(PlatformMbeanServerProvider.class).asEagerSingleton();
         binder.bind(JMXMetricsCollector.class).annotatedWith(Names.named("JMXMetricsCollector")).to(JMXMetricsCollector.class).asEagerSingleton();

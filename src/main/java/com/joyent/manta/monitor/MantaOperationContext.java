@@ -14,9 +14,11 @@ import org.apache.commons.codec.binary.Hex;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
@@ -41,11 +43,13 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public static final String RESPONSE_TIMES_KEY = "responseTime";
     public static final String EXCEPTION_KEY = "exception";
     public static final String STOPWATCH_KEY = "stopwatch";
+    public static final String PUT_REQUEST_STOPWATCH_KEY = "putRequestStopwatch";
 
     public MantaOperationContext() {
         super();
         put(RESPONSE_TIMES_KEY, new ConcurrentHashMap<UUID, Integer>());
         put(STOPWATCH_KEY, Stopwatch.createUnstarted());
+        put(PUT_REQUEST_STOPWATCH_KEY, new ArrayList<AtomicLong>());
     }
 
     @Override
@@ -146,6 +150,10 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
 
     public Stopwatch getStopWatch() {
         return (Stopwatch)get(STOPWATCH_KEY);
+    }
+
+    public ArrayList<AtomicLong> getPutRequestStopWatch() {
+        return (ArrayList<AtomicLong>) get(PUT_REQUEST_STOPWATCH_KEY);
     }
 
     @Nullable

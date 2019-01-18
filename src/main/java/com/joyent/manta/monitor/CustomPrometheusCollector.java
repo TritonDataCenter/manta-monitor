@@ -14,6 +14,7 @@ import io.prometheus.client.GaugeMetricFamily;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -24,12 +25,16 @@ import java.util.concurrent.atomic.AtomicLong;
 public class CustomPrometheusCollector extends Collector {
     private final JMXMetricsCollector jmxMetricsCollector;
     private final Map<String, AtomicLong> clientStats;
+    private final ArrayList<AtomicLong> putRequestElapsedTime;
+    private final AtomicLong lastPutRequestElapsedTimeAverage = new AtomicLong(0);
 
     @Inject
     CustomPrometheusCollector(@Named("JMXMetricsCollector") final JMXMetricsCollector jmxMetricsCollector,
-                              @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
+                              @Named("SharedStats") final Map<String, AtomicLong> clientStats,
+                              @Named("PutRequestElapsedTime") final ArrayList<AtomicLong> putRequestElapsedTime) {
         this.jmxMetricsCollector = jmxMetricsCollector;
         this.clientStats = clientStats;
+        this.putRequestElapsedTime = putRequestElapsedTime;
     }
 
     private <T extends Number> T retrieveMBeanAttributeValue(final String mBeanObjectName,
@@ -110,10 +115,33 @@ public class CustomPrometheusCollector extends Collector {
                 retrieveMBeanAttributeValue("retries", "MeanRate", Double.class))));
     }
 
-    private void addElapsedTimeMetric(final ImmutableList.Builder<MetricFamilySamples> builder, final Double value) {
-        builder.add((new GaugeMetricFamily("manta_monitor_operation_chain_elapsed_time",
-                "Total time in milliseconds to complete one chain of operations",
-                value)));
+    private void addElapsedTimeMetric(final ImmutableList.Builder<MetricFamilySamples> builder, final Double value, final String metric) {
+        String metricName = null;
+        String metricHelp = null;
+        switch (metric) {
+            case "completeOperation" :
+                metricName = "manta_monitor_operation_chain_elapsed_time";
+                metricHelp = "Total time in milliseconds to complete one chain of operations";
+                break;
+
+            case "put" :
+                metricName = "manta_monitor_put_request_elapsed_time";
+                metricHelp = "Total time in milliseconds to complete one put request";
+                break;
+
+            default :
+                break;
+        }
+        builder.add((new GaugeMetricFamily(metricName, metricHelp, value)));
+    }
+
+    private void calculateAndSetLastRequestPutElapsedTimeAverage() {
+        double sum = 0;
+        for (AtomicLong elapsedTime : putRequestElapsedTime) {
+            sum = sum + elapsedTime.doubleValue();
+        }
+        //Calculate the average from all the the running threads and save the value for the metric.
+        lastPutRequestElapsedTimeAverage.set((long) sum / putRequestElapsedTime.size());
     }
 
     @Override
@@ -135,8 +163,16 @@ public class CustomPrometheusCollector extends Collector {
         }
         if (!clientStats.isEmpty()) {
             clientStats.forEach((key, value) -> {
-                addElapsedTimeMetric(metricFamilySamplesBuilder, value.doubleValue());
+                addElapsedTimeMetric(metricFamilySamplesBuilder, value.doubleValue(), "completeOperation");
             });
+        }
+        if (!putRequestElapsedTime.isEmpty()) {
+            calculateAndSetLastRequestPutElapsedTimeAverage();
+            //Clear the List to prevent it from growing in size continuously.
+            putRequestElapsedTime.clear();
+        }
+        if (lastPutRequestElapsedTimeAverage.get() > 0) {
+            addElapsedTimeMetric(metricFamilySamplesBuilder, lastPutRequestElapsedTimeAverage.doubleValue(), "put");
         }
         return metricFamilySamplesBuilder.build();
     }
