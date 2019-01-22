@@ -15,7 +15,6 @@ import com.joyent.manta.monitor.chains.MantaOperationsChain;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.Runner;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
-import io.logz.guice.jersey.JerseyServer;
 import io.prometheus.client.hotspot.DefaultExports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ public class Application {
         final Injector jettyServerBuilderInjector = injector.createChildInjector(new JettyServerBuilderModule(injector), mantaMonitorServletModule);
 
         LOG.info("Starting Manta Monitor");
-        final JerseyServer server = jettyServerBuilderInjector.getInstance(JerseyServer.class);
+        final MantaMonitorJerseyServer server = jettyServerBuilderInjector.getInstance(MantaMonitorJerseyServer.class);
         DefaultExports.initialize();
         try {
             server.start();

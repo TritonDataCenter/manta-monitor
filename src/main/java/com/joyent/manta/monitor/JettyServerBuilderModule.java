@@ -11,7 +11,6 @@ import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.joyent.manta.monitor.config.Configuration;
-import io.logz.guice.jersey.JerseyModule;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
 
 /**
@@ -30,6 +29,6 @@ public class JettyServerBuilderModule implements Module {
                 .addPort(jettyServerPort)
                 .build();
 
-        binder.install(new JerseyModule(jerseyConfig));
+        binder.install(new MantaMonitorJerseyModule(jerseyConfig));
     }
 }

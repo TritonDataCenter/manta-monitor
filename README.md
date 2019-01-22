@@ -13,6 +13,15 @@ diagnosis.
 In order to make the execution and configuration of Manta Monitor easier, a
 [Docker image is provided](https://hub.docker.com/r/joyent/manta-monitor).
 
+### Generating Keys and Certificates with JDK’s keytool
+
+```
+keytool -keystore keystore -alias jetty -genkey -keyalg RSA -sigalg SHA256withRSA
+
+keytool -importkeystore -srckeystore keystore -destkeystore keystore -deststoretype pkcs12
+```
+For details about generating and using keystore refer [here](https://www.eclipse.org/jetty/documentation/9.4.x/configuring-ssl.html#configuring-jetty-for-ssl)
+
 ### Run
 
 A typical execution via Docker looks like as follows:
@@ -31,6 +40,8 @@ docker run -p 8090:8090 -d \
     -e MANTA_TIMEOUT=4000 \
     -e MANTA_METRIC_REPORTER_MODE=JMX \
     -e MANTA_HTTP_RETRIES=3 \
+    -e KEYSTORE_PATH=//Absolute path to the keystore generated as above \
+    -e KEYSTORE_PASS=XXXXXXXX \
     joyent/manta-monitor
 ```
 
