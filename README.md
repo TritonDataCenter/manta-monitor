@@ -40,8 +40,10 @@ docker run -p 8090:8090 -d \
     -e MANTA_TIMEOUT=4000 \
     -e MANTA_METRIC_REPORTER_MODE=JMX \
     -e MANTA_HTTP_RETRIES=3 \
-    -e KEYSTORE_PATH=//Absolute path to the keystore generated as above \
-    -e KEYSTORE_PASS=XXXXXXXX \
+    -e KEYSTORE_PATH=//Absolute path to the keystore \ (OPTIONAL. Required only for TLS)
+    -e KEYSTORE_PASS=XXXXXXXX \ (OPTIONAL. Required only for TLS)
+    -e JETTY_SERVER_PORT=8090 \
+    -e JETTY_SECURE_SERVER_PORT=8443 \(OPTIONAL. Required only if the above KEYSTORE_PATH and KEYSTORE_PASS are set)
     joyent/manta-monitor
 ```
 
@@ -49,7 +51,11 @@ The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry
 failed HTTP requests. Setting this value to zero disables retries completely.
 Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) 
 for more details about the parameters.
-
+The parameters KEYSTORE_PATH, KEYSTORE_PASS and JETTY_SECURE_SERVER_PORT are optional and to be used only if you want to
+enable TLS. In this case, set the KEYSTORE_PATH and KEYSTORE_PASS to the path to the keystore file stored locally and the
+password used to generate the keystore, respectively. Once the keystore variables are set, the JETTY_SERVER_SECURE_PORT
+value will be used to expose the manta-monitor metrics over https.
+ 
 ### Build
 
 To build and run the application from a local Docker image refer to the 

@@ -30,8 +30,8 @@ public class MantaMonitorJerseyModule extends AbstractModule {
     }
 
     public MantaMonitorJerseyModule(final JerseyConfiguration jerseyConfiguration, final JettyServerCreator jettyServerCreator) {
-        this.jerseyConfiguration = (JerseyConfiguration)Objects.requireNonNull(jerseyConfiguration);
-        this.jettyServerCreator = (JettyServerCreator)Objects.requireNonNull(jettyServerCreator);
+        this.jerseyConfiguration = Objects.requireNonNull(jerseyConfiguration);
+        this.jettyServerCreator = Objects.requireNonNull(jettyServerCreator);
     }
 
     protected void configure() {

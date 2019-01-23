@@ -50,7 +50,6 @@ public class MantaMonitorJerseyServer {
         this.jerseyConfiguration = jerseyConfiguration;
         this.injectorSupplier = injectorSupplier;
         this.server = jettyServerCreator.create();
-        this.validateKeystoreEnvVariables();
         this.configureServer();
     }
 
@@ -64,12 +63,18 @@ public class MantaMonitorJerseyServer {
         LOGGER.info("Embedded jetty server stopped");
     }
 
-    private void validateKeystoreEnvVariables() {
-        if (System.getenv("KEYSTORE_PATH") == null
-                || System.getenv("KEYSTORE_PASS") == null) {
-            System.err.println("Please make sure the env variables for KEYSTORE_PATH and KEYSTORE_PASS are set correctly");
-            System.err.println("Refer https://www.eclipse.org/jetty/documentation/9.4.x/configuring-ssl.html#understanding-certificates-and-keys");
-            System.exit(1);
+    private boolean areKeystoreEnvVariablesSet() {
+        return (System.getenv("KEYSTORE_PATH") != null && System.getenv("KEYSTORE_PASS") != null);
+    }
+
+    private int validateSecurePort(final String securePortEnvVariable) {
+        if (securePortEnvVariable == null) {
+            throw new RuntimeException("To enable TLS env variable JETTY_SERVER_SECURE_PORT is required");
+        }
+        if (Integer.parseInt(securePortEnvVariable) <= 0) {
+            throw new RuntimeException("Jetty server secure port must be greater than 0");
+        } else {
+            return Integer.parseInt(securePortEnvVariable);
         }
     }
 
@@ -83,27 +88,31 @@ public class MantaMonitorJerseyServer {
             this.server.addConnector(connector);
         });
 
-        HttpConfiguration httpConfig = new HttpConfiguration();
-        httpConfig.setSecureScheme("https");
-        httpConfig.setSecurePort(8443);
+        //Add the SSL connector only if KEYSTORE_PATH and KEYSTORE_PASS env variables are set.
+        if (areKeystoreEnvVariablesSet()) {
+            int securePort = validateSecurePort(System.getenv("JETTY_SERVER_SECURE_PORT"));
+            HttpConfiguration httpConfig = new HttpConfiguration();
+            httpConfig.setSecureScheme("https");
+            httpConfig.setSecurePort(securePort);
 
-        HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
-        SecureRequestCustomizer src = new SecureRequestCustomizer();
-        src.setStsMaxAge(2000);
-        src.setStsIncludeSubDomains(true);
-        httpsConfig.addCustomizer(src);
+            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            SecureRequestCustomizer src = new SecureRequestCustomizer();
+            src.setStsMaxAge(2000);
+            src.setStsIncludeSubDomains(true);
+            httpsConfig.addCustomizer(src);
 
-        SslContextFactory sslContextFactory = new SslContextFactory();
-        sslContextFactory.setKeyStorePath(System.getenv("KEYSTORE_PATH"));
-        sslContextFactory.setKeyStorePassword(System.getenv("KEYSTORE_PASS"));
-        sslContextFactory.setKeyManagerPassword(System.getenv("KEYSTORE_PASS"));
+            SslContextFactory sslContextFactory = new SslContextFactory();
+            sslContextFactory.setKeyStorePath(System.getenv("KEYSTORE_PATH"));
+            sslContextFactory.setKeyStorePassword(System.getenv("KEYSTORE_PASS"));
+            sslContextFactory.setKeyManagerPassword(System.getenv("KEYSTORE_PASS"));
 
-        ServerConnector httpsConnector = new ServerConnector(this.server,
-                new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                new HttpConnectionFactory(httpsConfig));
-        httpsConnector.setPort(8443);
+            ServerConnector httpsConnector = new ServerConnector(this.server,
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new HttpConnectionFactory(httpsConfig));
+            httpsConnector.setPort(securePort);
 
-        this.server.addConnector(httpsConnector);
+            this.server.addConnector(httpsConnector);
+        }
 
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setServer(this.server);
@@ -115,7 +124,7 @@ public class MantaMonitorJerseyServer {
         webAppContext.setContextPath(this.jerseyConfiguration.getContextPath());
         webAppContext.addEventListener(new GuiceServletContextListener() {
             protected Injector getInjector() {
-                return (Injector)MantaMonitorJerseyServer.this.injectorSupplier.get();
+                return MantaMonitorJerseyServer.this.injectorSupplier.get();
             }
         });
         this.server.setHandler(webAppContext);

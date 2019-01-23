@@ -48,21 +48,23 @@ public class Application {
             System.exit(1);
         }
 
+        int jettyServerPort = validateJettyServerPort(System.getenv("JETTY_SERVER_PORT"));
         final URI configUri = Objects.requireNonNull(parseConfigFileURI(args[0]));
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
         final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
         final Injector injector = Guice.createInjector(module);
         final Configuration configuration = injector.getInstance(Configuration.class);
-        final Injector jettyServerBuilderInjector = injector.createChildInjector(new JettyServerBuilderModule(injector), mantaMonitorServletModule);
-
+        final Injector jettyServerBuilderInjector = injector.createChildInjector(new JettyServerBuilderModule(jettyServerPort), mantaMonitorServletModule);
         LOG.info("Starting Manta Monitor");
         final MantaMonitorJerseyServer server = jettyServerBuilderInjector.getInstance(MantaMonitorJerseyServer.class);
+        //DefaultExports registers collectors, built into the prometheus java client, for garbage collection,
+        // memory pools, JMX, classloading, and thread counts
         DefaultExports.initialize();
         try {
             server.start();
         } catch (Exception e) {
-            copyContextToException(injector, configuration, e, "Failed to start Embedded Jetty Server at port");
+            copyContextToException(injector, jettyServerPort, e, "Failed to start Embedded Jetty Server at port");
             System.exit(1);
         }
 
@@ -77,7 +79,7 @@ public class Application {
         try {
             server.stop();
         } catch (Exception e) {
-            copyContextToException(injector, configuration, e, "Failed to stop Embedded Jetty Server at port");
+            copyContextToException(injector, jettyServerPort, e, "Failed to stop Embedded Jetty Server at port");
             System.exit(1);
         }
     }
@@ -148,7 +150,7 @@ public class Application {
     }
 
     private static void copyContextToException(final Injector injector,
-                                               final Configuration configuration,
+                                               final int jettyServerPort,
                                                final Exception e,
                                                final String s) {
         InstanceMetadata instanceMetadata = injector.getInstance(InstanceMetadata.class);
@@ -158,8 +160,19 @@ public class Application {
         });
 
         String message = String.format("%s %d. Additional context is as follows:%s",
-                s, configuration.getJettyServerPort(), messageBuffer);
+                s, jettyServerPort, messageBuffer);
 
         LOG.error(message, e);
+    }
+
+    private static int validateJettyServerPort(final String jettyServerPortEnvVariable) {
+        if (jettyServerPortEnvVariable == null) {
+            throw new RuntimeException("Manta Monitor requires env variable JETTY_SERVER_PORT");
+        }
+        if (Integer.parseInt(jettyServerPortEnvVariable) <= 0) {
+            throw new RuntimeException("Jetty server port must be greater than 0");
+        } else {
+            return Integer.parseInt(jettyServerPortEnvVariable);
+        }
     }
 }
