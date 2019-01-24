@@ -43,7 +43,7 @@ docker run -p 8090:8090 -d \
     -e KEYSTORE_PATH=//Absolute path to the keystore \ (OPTIONAL. Required only for TLS)
     -e KEYSTORE_PASS=XXXXXXXX \ (OPTIONAL. Required only for TLS)
     -e JETTY_SERVER_PORT=8090 \
-    -e JETTY_SECURE_SERVER_PORT=8443 \(OPTIONAL. Required only if the above KEYSTORE_PATH and KEYSTORE_PASS are set)
+    -e JETTY_SERVER_SECURE_PORT=8443 \(OPTIONAL. Required only if the above KEYSTORE_PATH and KEYSTORE_PASS are set)
     joyent/manta-monitor
 ```
 
