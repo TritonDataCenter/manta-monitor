@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.DispatcherType;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Supplier;
@@ -63,8 +64,40 @@ public class MantaMonitorJerseyServer {
         LOGGER.info("Embedded jetty server stopped");
     }
 
-    private boolean areKeystoreEnvVariablesSet() {
-        return (System.getenv("KEYSTORE_PATH") != null && System.getenv("KEYSTORE_PASS") != null);
+    private void validateKeyStoreEnvVariables() {
+        String serverKeyStorePath = System.getenv("KEYSTORE_PATH");
+        String serverKeyStorePass = System.getenv("KEYSTORE_PASS");
+        String trustedKeyStorePath = System.getenv("TRUSTSTORE_PATH");
+        String trustedKeyStorePass = System.getenv("TRUSTSTORE_PASS");
+        if (serverKeyStorePath == null || serverKeyStorePass == null
+                || trustedKeyStorePath == null || trustedKeyStorePass == null) {
+            ArrayList<String> nullEnvVariablesList = new ArrayList<>();
+            if (serverKeyStorePath == null) {
+                nullEnvVariablesList.add("KEYSTORE_PATH");
+            }
+            if (serverKeyStorePass == null) {
+                nullEnvVariablesList.add("KEYSTORE_PASS");
+            }
+            if (trustedKeyStorePath == null) {
+                nullEnvVariablesList.add("TRUSTSTORE_PATH");
+            }
+            if (trustedKeyStorePass == null) {
+                nullEnvVariablesList.add("TRUSTSTORE_PASS");
+            }
+            reportNullKeyStoreVariables(nullEnvVariablesList);
+        }
+    }
+
+    private void reportNullKeyStoreVariables(final ArrayList<String> nullKeyStoreEnvVariablesList) {
+        if (!nullKeyStoreEnvVariablesList.isEmpty()) {
+            StringBuffer message = new StringBuffer("Null values encountered for env variables:");
+            message.append(System.lineSeparator());
+            for (String envVariable : nullKeyStoreEnvVariablesList) {
+                message.append(envVariable);
+                message.append(System.lineSeparator());
+            }
+            throw new RuntimeException(message.toString());
+        }
     }
 
     private int validateSecurePort(final String securePortEnvVariable) {
@@ -88,8 +121,8 @@ public class MantaMonitorJerseyServer {
             this.server.addConnector(connector);
         });
 
-        //Add the SSL connector only if KEYSTORE_PATH and KEYSTORE_PASS env variables are set.
-        if (areKeystoreEnvVariablesSet()) {
+        if (System.getenv("ENABLE_TLS") != null && System.getenv("ENABLE_TLS").equals("true")) {
+            validateKeyStoreEnvVariables();
             int securePort = validateSecurePort(System.getenv("JETTY_SERVER_SECURE_PORT"));
             HttpConfiguration httpConfig = new HttpConfiguration();
             httpConfig.setSecureScheme("https");
@@ -105,6 +138,9 @@ public class MantaMonitorJerseyServer {
             sslContextFactory.setKeyStorePath(System.getenv("KEYSTORE_PATH"));
             sslContextFactory.setKeyStorePassword(System.getenv("KEYSTORE_PASS"));
             sslContextFactory.setKeyManagerPassword(System.getenv("KEYSTORE_PASS"));
+            sslContextFactory.setTrustStorePath(System.getenv("TRUSTSTORE_PATH"));
+            sslContextFactory.setTrustStorePassword(System.getenv("TRUSTSTORE_PASS"));
+            sslContextFactory.setNeedClientAuth(true);
 
             ServerConnector httpsConnector = new ServerConnector(this.server,
                     new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
@@ -113,7 +149,6 @@ public class MantaMonitorJerseyServer {
 
             this.server.addConnector(httpsConnector);
         }
-
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setServer(this.server);
         webAppContext.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
