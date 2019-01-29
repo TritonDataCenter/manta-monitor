@@ -8,10 +8,7 @@
 package com.joyent.manta.monitor;
 
 import com.google.inject.Binder;
-import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.joyent.manta.monitor.config.Configuration;
-import io.logz.guice.jersey.JerseyModule;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
 
 /**
@@ -20,8 +17,8 @@ import io.logz.guice.jersey.configuration.JerseyConfiguration;
 public class JettyServerBuilderModule implements Module {
     private final int jettyServerPort;
 
-    public JettyServerBuilderModule(final Injector applicationInjector) {
-        this.jettyServerPort = applicationInjector.getInstance(Configuration.class).getJettyServerPort();
+    public JettyServerBuilderModule(final int jettyServerPort) {
+        this.jettyServerPort = jettyServerPort;
     }
 
     @Override
@@ -30,6 +27,7 @@ public class JettyServerBuilderModule implements Module {
                 .addPort(jettyServerPort)
                 .build();
 
-        binder.install(new JerseyModule(jerseyConfig));
+        MantaMonitorJerseyModule mantaMonitorJerseyModule = new MantaMonitorJerseyModule(jerseyConfig);
+        binder.install(mantaMonitorJerseyModule);
     }
 }

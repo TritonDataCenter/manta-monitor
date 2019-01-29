@@ -7,6 +7,5 @@
       "minFileSize":4096,
       "maxFileSize":65536
     }
-  ],
-  "jettyServerPort": 8090
+  ]
 }

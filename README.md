@@ -15,7 +15,13 @@ In order to make the execution and configuration of Manta Monitor easier, a
 
 ### Run
 
-A typical execution via Docker looks like as follows:
+#### Modes of operation
+Manta-monitor can expose the JMX metrics coming from the manta client over http and https. Hence there are two modes in 
+which the application can run.
+
+* HTTP mode (unsecured): 
+In this mode, the metrics will be exposed over HTTP and a typical execution via Docker looks like as follows:
+
 ```
 docker run -p 8090:8090 -d \
     --name manta-monitor-1
@@ -31,14 +37,157 @@ docker run -p 8090:8090 -d \
     -e MANTA_TIMEOUT=4000 \
     -e MANTA_METRIC_REPORTER_MODE=JMX \
     -e MANTA_HTTP_RETRIES=3 \
+    -e JETTY_SERVER_PORT=8090 \
     joyent/manta-monitor
 ```
 
-The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry
-failed HTTP requests. Setting this value to zero disables retries completely.
-Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) 
-for more details about the parameters.
+* HTTPS mode (secured):
+This optional mode enables TLS and exposes the metrics over https. In order to operate manta-monitor in this mode there 
+are some additional configuration settings required and are as follows:
+    * Providing Keys and Certificates for Server keystore : In order for our server to be able to participate in SSL, we
+    need to provide it with a keystore that contains a valid certificate (can be either self signed or CA provided) and 
+    a private key. Follow the below steps to generate a keystore using JDK's keytool.
+    
+    NOTE: Please note/remember any passwords being used for the creation of the keystore as they will be required by the
+    application.
+ 
+    The following command prompts for information about the certificate and for passwords to protect both the keystore 
+    and the keys within it. The only mandatory response is to provide the fully qualified host name of the server at the
+    "first and last name" prompt. For example:
+    ```
+    keytool -keystore keystore -genkey -keyalg RSA -sigalg SHA256withRSA
+     Enter keystore password:  password
+     What is your first and last name?
+       [Unknown]: com.joyent.manta.monitor
+     What is the name of your organizational unit?
+       [Unknown]: manta.monitor
+     What is the name of your organization?
+       [Unknown]: Joyent
+     What is the name of your City or Locality?
+       [Unknown]:
+     What is the name of your State or Province?
+       [Unknown]:
+     What is the two-letter country code for this unit?
+       [Unknown]:
+     Is CN=com.joyent.manta.monitor, OU=manta.monitor, O=Joyent,
+     L=Unknown, ST=Unknown, C=Unknown correct?
+       [no]:  yes
+    
+     Enter key password for <jetty>
+             (RETURN if same as keystore password):
+     $
+    ```
+    NOTE : If you already have key and certificate in different files then you need to combine them into a PKCS12 format
+    file to load into a new keystore. The following OpenSSL command combines the key in server.key file and the 
+    certificate in server.crt file into the server.pkcs12 file:
+    ```
+    openssl pkcs12 -inkey server.key -in server.crt -export -out server.pkcs12
+    ```
+    * Importing the keystore generated above into a PKCS12 formatted keystore: Once you have successfully created the 
+    keystore (keystore or server.pkcs12, as in the above example), you need to import the same in a PKCS12 format as:
+    ```
+    keytool -importkeystore -srckeystore keystore -destkeystore keystore -deststoretype pkcs12
+    
+    OR
+    
+    keytool -importkeystore -srckeystore server.pkcs12 -srcstoretype PKCS12 -destkeystore keystore -deststoretype pkcs12
+    ```
+    * Creating a Server trust store. A server trust store contains the certificate and key of a trusted client. This
+    way when a client tries to connect to the application over https, it's certificate will be validated against the 
+    trusted store and thereby granted access. Hence, in order to configure a server's trust store you would need the 
+    client's PEM formatted certificate and key (as well as any password associated with them). 
+    
+    NOTE: Please note/remember any passwords that are set during creation of the trust store.
+    
+    The following OpenSSL command will generate a PKCS12 formatted trust store using the client's certificate and key.
+    
+    ```
+     openssl pkcs12 -inkey client.key -in client.crt -export -out client.pkcs12
+    ```
+    Once you have successfully created the above client.pkcs12 truststore, import the same using the keytool as:
+    ```
+    keytool -importkeystore -srckeystore client.pkcs12 -srcstoretype PKCS12 -destkeystore truststore -deststoretype pkcs12
+    ```
+Once you have successfully created the server's keystore and truststore, you can use the following docker command to run
+the application:
 
+```
+docker run -p 8090:8090 -p 8443:8443 -d \
+    --name manta-monitor-1
+    --memory 1G \
+    --label triton.cns.services=manta-monitor \
+    -v <absolute-path-to-server-keystore>:/opt/manta-monitor/keystore \
+    -v <absolute-path-to-server-truststore>:/opt/manta-monitor/truststore \
+    -e JAVA_ENV=production \
+    -e HONEYBADGER_API_KEY=XXXXXXXX \
+    -e CONFIG_FILE=manta:///user/stor/manta-monitor-config.json \
+    -e MANTA_USER=user \
+    -e "MANTA_PUBLIC_KEY=$(cat $HOME/.ssh/id_rsa.pub)" \
+    -e "MANTA_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa | base64 -w0)" \
+    -e "MANTA_URL=https://us-east.manta.joyent.com" \
+    -e MANTA_TIMEOUT=4000 \
+    -e MANTA_METRIC_REPORTER_MODE=JMX \
+    -e MANTA_HTTP_RETRIES=3 \
+    -e JETTY_SERVER_PORT=8090 \
+    -e ENABLE_TLS=true \
+    -e KEYSTORE_PATH=/opt/manta-monitor/keystore \
+    -e KEYSTORE_PASS=//XXXXXXXX \
+    -e TRUSTSTORE_PATH=//opt/manta-monitor/truststore \
+    -e TRUSTSTORE_PASS=XXXXXXXX \
+    -e JETTY_SERVER_SECURE_PORT=8443 \
+    joyent/manta-monitor
+```
+NOTE : For detailed information about about generating and using keystore 
+refer [here](https://www.eclipse.org/jetty/documentation/9.4.x/configuring-ssl.html#configuring-jetty-for-ssl)
+
+Additional notes: 
+* The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry failed HTTP requests. 
+  Setting this value to zero disables retries completely.
+  Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) 
+  for more details about the parameters.
+* In order to setup prometheus server [tls_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config)
+  to scrape manta-monitor metrics, follow the below steps to generate the certificate and key.
+  ```
+  openssl req  -nodes -new -x509  -keyout prometheus.key -out prometheus.cert
+  ```
+  Use the above key and certificate file to add tls_config to the prometheus.yml. A typical prometheus.yml might look like:
+  ```
+  # my global config
+  global:
+    scrape_interval:     15s # By default, scrape targets every 15 seconds.
+    evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+    # scrape_timeout is set to the global default (10s).
+  
+    # Attach these labels to any time series or alerts when communicating with
+    # external systems (federation, remote storage, Alertmanager).
+    #external_labels:
+    #    monitor: 'codelab-monitor'
+  
+  # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+  rule_files:
+    # - "first.rules"
+    # - "second.rules"
+  
+  # A scrape configuration containing exactly one endpoint to scrape:
+  scrape_configs:
+    # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+    - job_name: 'manta-monitor'
+  
+      # Override the global default and scrape targets from this job every 5 seconds.
+      scrape_interval: 5s
+  
+      # metrics_path defaults to '/metrics'
+      # scheme defaults to 'http'.
+  
+      static_configs:
+        - targets: ['localhost:8443']
+      scheme: https
+      tls_config:
+        cert_file: prometheus.cert
+        key_file: prometheus.key
+        insecure_skip_verify: true
+  ```
+ 
 ### Build
 
 To build and run the application from a local Docker image refer to the 
