@@ -96,16 +96,22 @@ public class MantaMonitorJerseyServer {
                 message.append(envVariable);
                 message.append(System.lineSeparator());
             }
-            throw new RuntimeException(message.toString());
+            MantaMonitorJerseyServerException exception = new MantaMonitorJerseyServerException(message.toString());
+            throw exception;
         }
     }
 
     private int validateSecurePort(final String securePortEnvVariable) {
         if (securePortEnvVariable == null) {
-            throw new RuntimeException("To enable TLS env variable JETTY_SERVER_SECURE_PORT is required");
+            String message = "No null value allowed for JETTY_SERVER_SECURE_PORT when ENABLE_TLS is set to true";
+            MantaMonitorJerseyServerException exception = new MantaMonitorJerseyServerException(message);
+            throw exception;
         }
         if (Integer.parseInt(securePortEnvVariable) <= 0) {
-            throw new RuntimeException("Jetty server secure port must be greater than 0");
+            String message = "Jetty server secure port must be greater than 0";
+            MantaMonitorJerseyServerException exception = new MantaMonitorJerseyServerException(message);
+            exception.setContextValue("JETTY_SERVER_SECURE_PORT", securePortEnvVariable);
+            throw exception;
         } else {
             return Integer.parseInt(securePortEnvVariable);
         }

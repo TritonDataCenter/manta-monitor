@@ -27,6 +27,7 @@ public class JettyServerBuilderModule implements Module {
                 .addPort(jettyServerPort)
                 .build();
 
-        binder.install(new MantaMonitorJerseyModule(jerseyConfig));
+        MantaMonitorJerseyModule mantaMonitorJerseyModule = new MantaMonitorJerseyModule(jerseyConfig);
+        binder.install(mantaMonitorJerseyModule);
     }
 }

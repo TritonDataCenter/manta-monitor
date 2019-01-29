@@ -42,13 +42,14 @@ docker run -p 8090:8090 -d \
 ```
 
 * HTTPS mode (secured):
-This optional mode enables TLS and exposes the metrics over https. In order to operate manta-monitor in this mode there are some
-additional configuration settings required and are as follows:
+This optional mode enables TLS and exposes the metrics over https. In order to operate manta-monitor in this mode there 
+are some additional configuration settings required and are as follows:
     * Providing Keys and Certificates for Server keystore : In order for our server to be able to participate in SSL, we
     need to provide it with a keystore that contains a valid certificate (can be either self signed or CA provided) and 
     a private key. Follow the below steps to generate a keystore using JDK's keytool.
     
-    NOTE: Please note/remember any passwords being used for the creation of the keystore as they will be required by the application.
+    NOTE: Please note/remember any passwords being used for the creation of the keystore as they will be required by the
+    application.
  
     The following command prompts for information about the certificate and for passwords to protect both the keystore 
     and the keys within it. The only mandatory response is to provide the fully qualified host name of the server at the
@@ -76,9 +77,9 @@ additional configuration settings required and are as follows:
              (RETURN if same as keystore password):
      $
     ```
-    NOTE : If you already have key and certificate in different files then you need to combine them into a PKCS12 format file
-    to load into a new keystore. The following OpenSSL command combines the key in server.key file and the certificate in
-    server.crt file into the server.pkcs12 file:
+    NOTE : If you already have key and certificate in different files then you need to combine them into a PKCS12 format
+    file to load into a new keystore. The following OpenSSL command combines the key in server.key file and the 
+    certificate in server.crt file into the server.pkcs12 file:
     ```
     openssl pkcs12 -inkey server.key -in server.crt -export -out server.pkcs12
     ```
@@ -92,9 +93,9 @@ additional configuration settings required and are as follows:
     keytool -importkeystore -srckeystore server.pkcs12 -srcstoretype PKCS12 -destkeystore keystore -deststoretype pkcs12
     ```
     * Creating a Server trust store. A server trust store contains the certificate and key of a trusted client. This
-    way when a client tries to connect to the application over https, it's certificate will be validated against the trusted
-    store and thereby granted access. Hence, in order to configure a server's trust store you would need the client's 
-    PEM formatted certificate and key (as well as any password associated with them). 
+    way when a client tries to connect to the application over https, it's certificate will be validated against the 
+    trusted store and thereby granted access. Hence, in order to configure a server's trust store you would need the 
+    client's PEM formatted certificate and key (as well as any password associated with them). 
     
     NOTE: Please note/remember any passwords that are set during creation of the trust store.
     
@@ -136,12 +137,56 @@ docker run -p 8090:8090 -p 8443:8443 -d \
     -e JETTY_SERVER_SECURE_PORT=8443 \
     joyent/manta-monitor
 ```
-NOTE : For detailed information about about generating and using keystore refer [here](https://www.eclipse.org/jetty/documentation/9.4.x/configuring-ssl.html#configuring-jetty-for-ssl)
+NOTE : For detailed information about about generating and using keystore 
+refer [here](https://www.eclipse.org/jetty/documentation/9.4.x/configuring-ssl.html#configuring-jetty-for-ssl)
 
-Additional notes: The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry
-failed HTTP requests. Setting this value to zero disables retries completely.
-Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) 
-for more details about the parameters.
+Additional notes: 
+* The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry failed HTTP requests. 
+  Setting this value to zero disables retries completely.
+  Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) 
+  for more details about the parameters.
+* In order to setup prometheus server [tls_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config)
+  to scrape manta-monitor metrics, follow the below steps to generate the certificate and key.
+  ```
+  openssl req  -nodes -new -x509  -keyout prometheus.key -out prometheus.cert
+  ```
+  Use the above key and certificate file to add tls_config to the prometheus.yml. A typical prometheus.yml might look like:
+  ```
+  # my global config
+  global:
+    scrape_interval:     15s # By default, scrape targets every 15 seconds.
+    evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+    # scrape_timeout is set to the global default (10s).
+  
+    # Attach these labels to any time series or alerts when communicating with
+    # external systems (federation, remote storage, Alertmanager).
+    #external_labels:
+    #    monitor: 'codelab-monitor'
+  
+  # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+  rule_files:
+    # - "first.rules"
+    # - "second.rules"
+  
+  # A scrape configuration containing exactly one endpoint to scrape:
+  scrape_configs:
+    # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+    - job_name: 'manta-monitor'
+  
+      # Override the global default and scrape targets from this job every 5 seconds.
+      scrape_interval: 5s
+  
+      # metrics_path defaults to '/metrics'
+      # scheme defaults to 'http'.
+  
+      static_configs:
+        - targets: ['localhost:8443']
+      scheme: https
+      tls_config:
+        cert_file: prometheus.cert
+        key_file: prometheus.key
+        insecure_skip_verify: true
+  ```
  
 ### Build
 

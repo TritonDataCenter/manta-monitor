@@ -55,10 +55,11 @@ public class Application {
         final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
         final Injector injector = Guice.createInjector(module);
         final Configuration configuration = injector.getInstance(Configuration.class);
-        final Injector jettyServerBuilderInjector = injector.createChildInjector(new JettyServerBuilderModule(jettyServerPort), mantaMonitorServletModule);
+        final JettyServerBuilderModule jettyServerBuilderModule = new JettyServerBuilderModule(jettyServerPort);
+        final Injector jettyServerBuilderInjector = injector.createChildInjector(jettyServerBuilderModule, mantaMonitorServletModule);
         LOG.info("Starting Manta Monitor");
         final MantaMonitorJerseyServer server = jettyServerBuilderInjector.getInstance(MantaMonitorJerseyServer.class);
-        //DefaultExports registers collectors, built into the prometheus java client, for garbage collection,
+        // DefaultExports registers collectors, built into the prometheus java client, for garbage collection,
         // memory pools, JMX, classloading, and thread counts
         DefaultExports.initialize();
         try {
