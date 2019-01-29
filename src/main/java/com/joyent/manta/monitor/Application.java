@@ -168,10 +168,10 @@ public class Application {
 
     private static int validateJettyServerPort(final String jettyServerPortEnvVariable) {
         if (jettyServerPortEnvVariable == null) {
-            throw new RuntimeException("Manta Monitor requires env variable JETTY_SERVER_PORT");
+            throw new IllegalArgumentException("Missing env variable JETTY_SERVER_PORT");
         }
         if (Integer.parseInt(jettyServerPortEnvVariable) <= 0) {
-            throw new RuntimeException("Jetty server port must be greater than 0");
+            throw new IllegalArgumentException("Jetty server port must be greater than 0");
         } else {
             return Integer.parseInt(jettyServerPortEnvVariable);
         }
