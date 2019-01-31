@@ -8,17 +8,16 @@
 package com.joyent.manta.monitor.chains;
 
 import com.google.common.collect.ImmutableList;
-import com.joyent.manta.monitor.CustomPrometheusCollector;
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.InstanceMetadata;
+import com.joyent.manta.monitor.commands.CleanupDirsCommand;
+import com.joyent.manta.monitor.commands.DeleteFileCommand;
 import com.joyent.manta.monitor.commands.GenerateFileCommand;
+import com.joyent.manta.monitor.commands.GetFileCommand;
+import com.joyent.manta.monitor.commands.HeadFileCommand;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import com.joyent.manta.monitor.commands.MkdirCommand;
 import com.joyent.manta.monitor.commands.PutFileCommand;
-import com.joyent.manta.monitor.commands.HeadFileCommand;
-import com.joyent.manta.monitor.commands.DeleteFileCommand;
-import com.joyent.manta.monitor.commands.GetFileCommand;
-import com.joyent.manta.monitor.commands.CleanupDirsCommand;
 import io.honeybadger.reporter.NoticeReporter;
 
 import javax.inject.Inject;
@@ -46,8 +45,7 @@ public class FileUploadGetDeleteChain extends MantaOperationsChain {
     public FileUploadGetDeleteChain(final NoticeReporter reporter,
                                     final HoneyBadgerRequestFactory requestFactory,
                                     final InstanceMetadata metadata,
-                                    @Named("SharedStats") final Map<String, AtomicLong> clientStats,
-                                    final CustomPrometheusCollector customPrometheusCollector) {
-        super(COMMANDS, reporter, requestFactory, metadata, clientStats, customPrometheusCollector);
+                                    @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
+        super(COMMANDS, reporter, requestFactory, metadata, clientStats);
     }
 }
