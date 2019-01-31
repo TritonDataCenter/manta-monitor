@@ -14,6 +14,7 @@ import io.logz.guice.jersey.GuiceJerseyResourceConfig;
 import io.logz.guice.jersey.JettyServerCreator;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
 import io.logz.guice.jersey.configuration.ServerConnectorConfiguration;
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Server;
@@ -118,12 +119,15 @@ public class MantaMonitorJerseyServer {
     }
 
     /*
-     * This method configures the embedded jetty server to run on either the http mode on JETTY_SERVER_PORT or
-     * the https mode on JETTY_SERVER_SECURE_PORT. If the ENABLE_TLS flag is set to true during runtime, the server will
+     * This method configures the embedded jetty server to run on either the http
+     * mode on JETTY_SERVER_PORT or the https mode on JETTY_SERVER_SECURE_PORT.
+     * If the ENABLE_TLS flag is set to true during runtime, the server will
      * operate only in the https mode.
      */
     private void configureServer() {
-        if (System.getenv("ENABLE_TLS") != null && System.getenv("ENABLE_TLS").equals("true")) {
+        if (BooleanUtils.toBoolean(System.getenv("ENABLE_TLS"))) {
+            // Activate only the JETTY_SERVER_SECURE_PORT since ENABLE_TLS is
+            // set to true
             validateKeyStoreEnvVariables();
             int securePort = validateSecurePort(System.getenv("JETTY_SERVER_SECURE_PORT"));
             HttpConfiguration httpConfig = new HttpConfiguration();
@@ -151,6 +155,8 @@ public class MantaMonitorJerseyServer {
 
             this.server.addConnector(httpsConnector);
         } else {
+            // Activate only the JETTY_SERVER_PORT since ENABLE_TLS is
+            // either set to false or is null
             List<ServerConnectorConfiguration> serverConnectorConfigurations = this.jerseyConfiguration.getServerConnectors();
             serverConnectorConfigurations.forEach((configuration) -> {
                 ServerConnector connector = new ServerConnector(this.server);
