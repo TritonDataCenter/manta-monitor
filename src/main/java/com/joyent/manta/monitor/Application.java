@@ -17,6 +17,7 @@ import com.joyent.manta.monitor.config.Runner;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.hotspot.DefaultExports;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,6 +199,10 @@ public class Application {
     }
 
     private static int validateJettyServerPort(final String jettyServerPortEnvVariable) {
+        if (BooleanUtils.toBoolean(System.getenv("ENABLE_TLS"))) {
+            // JETTY_SERVER_PORT is redundant in this case.
+            return 0;
+        }
         if (jettyServerPortEnvVariable == null) {
             throw new IllegalArgumentException("Missing env variable JETTY_SERVER_PORT");
         }
