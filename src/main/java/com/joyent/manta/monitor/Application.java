@@ -15,6 +15,7 @@ import com.joyent.manta.monitor.chains.MantaOperationsChain;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.Runner;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
+import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.hotspot.DefaultExports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import java.util.Set;
  */
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
+    private static final int WAIT_TIME_FOR_JMX_STATS_MS = 3_000;
     private static final HoneybadgerUncaughtExceptionHandler UNCAUGHT_EXCEPTION_HANDLER;
     static {
         UNCAUGHT_EXCEPTION_HANDLER = HoneybadgerUncaughtExceptionHandler.registerAsUncaughtExceptionHandler();
@@ -59,9 +61,12 @@ public class Application {
         final Injector jettyServerBuilderInjector = injector.createChildInjector(jettyServerBuilderModule, mantaMonitorServletModule);
         LOG.info("Starting Manta Monitor");
         final MantaMonitorJerseyServer server = jettyServerBuilderInjector.getInstance(MantaMonitorJerseyServer.class);
-        // DefaultExports registers collectors, built into the prometheus java client, for garbage collection,
-        // memory pools, JMX, classloading, and thread counts
+
+        // DefaultExports registers collectors, built into the prometheus java
+        // client, for garbage collection, memory pools, JMX, classloading, and
+        // thread counts
         DefaultExports.initialize();
+
         try {
             server.start();
         } catch (Exception e) {
@@ -100,6 +105,8 @@ public class Application {
 
         /* We programmatically load each monitor test chain as specified by the
          * configuration file. */
+
+        // Create all of the chains and prepare them for their run
         for (Runner runner : configuration.getTestRunners()) {
             try {
                 @SuppressWarnings("unchecked")
@@ -109,9 +116,33 @@ public class Application {
                 ChainRunner chainRunner = new ChainRunner(chain, runner,
                         client, UNCAUGHT_EXCEPTION_HANDLER);
                 runningChains.add(chainRunner);
-                chainRunner.start();
             } catch (ClassNotFoundException e) {
                 LOG.error("Unable to load class: {}", runner.getChainClassName());
+            }
+        }
+
+        // Start each chain
+        for (ChainRunner runner : runningChains) {
+            runner.start();
+        }
+
+        final CustomPrometheusCollector collector =
+                injector.getInstance(CustomPrometheusCollector.class);
+
+        for (boolean jmxStatsAvailable = false; !jmxStatsAvailable;) {
+            try {
+                CollectorRegistry.defaultRegistry.register(collector);
+                jmxStatsAvailable = true;
+            } catch (MBeanServerOperationException e) {
+                // Wait for the JMX stats to be available for an addition 2 seconds
+                try {
+                    LOG.debug("JMX stats not available yet, waiting another {} ms",
+                            WAIT_TIME_FOR_JMX_STATS_MS);
+                    Thread.sleep(WAIT_TIME_FOR_JMX_STATS_MS);
+                } catch (InterruptedException ie) {
+                    // Pass along the interruption to the main thread
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 

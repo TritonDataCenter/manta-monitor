@@ -12,15 +12,13 @@ import com.google.common.collect.ImmutableSet;
 import com.joyent.manta.exception.MantaClientHttpResponseException;
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.InstanceMetadata;
-import com.joyent.manta.monitor.CustomPrometheusCollector;
 import com.joyent.manta.monitor.MBeanServerOperationException;
-import com.joyent.manta.monitor.ThrowableProcessor;
 import com.joyent.manta.monitor.MantaOperationContext;
+import com.joyent.manta.monitor.ThrowableProcessor;
 import com.joyent.manta.monitor.commands.MantaOperationCommand;
 import io.honeybadger.reporter.NoticeReporter;
 import io.honeybadger.reporter.dto.Context;
 import io.honeybadger.reporter.dto.Request;
-import io.prometheus.client.CollectorRegistry;
 import org.apache.commons.chain.impl.ChainBase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionContext;
@@ -31,12 +29,11 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.net.SocketTimeoutException;
-import java.util.Set;
-import java.util.Map;
-import java.util.LinkedHashSet;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -49,8 +46,6 @@ public class MantaOperationsChain extends ChainBase {
     private final ThrowableProcessor throwableProcessor;
     private final InstanceMetadata metadata;
     private final Map<String, AtomicLong> clientStats;
-    private final AtomicBoolean completionStatus = new AtomicBoolean(false);
-    private final CustomPrometheusCollector customPrometheusCollector;
 
     private static final ImmutableMap<Integer, String> STATUS_CODE_TO_TAG = ImmutableMap.of(
         HttpStatus.SC_INTERNAL_SERVER_ERROR, "internal-server-error",
@@ -65,14 +60,12 @@ public class MantaOperationsChain extends ChainBase {
                                 final NoticeReporter reporter,
                                 final HoneyBadgerRequestFactory requestFactory,
                                 final InstanceMetadata metadata,
-                                @Named("SharedStats") final Map<String, AtomicLong> clientStats,
-                                final CustomPrometheusCollector customPrometheusCollector) {
+                                @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
         super(commands);
         this.reporter = reporter;
         this.metadata = metadata;
         this.throwableProcessor = new ThrowableProcessor(requestFactory);
         this.clientStats = clientStats;
-        this.customPrometheusCollector = customPrometheusCollector;
     }
 
     public void execute(final MantaOperationContext context) {
@@ -86,10 +79,6 @@ public class MantaOperationsChain extends ChainBase {
                 LOG.info("Stopwatch recorded {} milliseconds", context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
                 AtomicLong elapsedTime = new AtomicLong(context.getStopWatch().elapsed(TimeUnit.MILLISECONDS));
                 clientStats.put(getClass().getSimpleName(), elapsedTime);
-            }
-            //Register the collector only once.
-            if (completionStatus.compareAndSet(false, true)) {
-                CollectorRegistry.defaultRegistry.register(customPrometheusCollector);
             }
         } catch (Exception e) {
             throwable = e;
