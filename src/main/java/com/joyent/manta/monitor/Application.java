@@ -167,6 +167,10 @@ public class Application {
     }
 
     private static int validateJettyServerPort(final String jettyServerPortEnvVariable) {
+        if (System.getenv("ENABLE_TLS") != null
+                && System.getenv("ENABLE_TLS").equals("true")) {
+            return 0;
+        }
         if (jettyServerPortEnvVariable == null) {
             throw new IllegalArgumentException("Missing env variable JETTY_SERVER_PORT");
         }

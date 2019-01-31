@@ -117,16 +117,12 @@ public class MantaMonitorJerseyServer {
         }
     }
 
+    /*
+     * This method configures the embedded jetty server to run on either the http mode on JETTY_SERVER_PORT or
+     * the https mode on JETTY_SERVER_SECURE_PORT. If the ENABLE_TLS flag is set to true during runtime, the server will
+     * operate only in the https mode.
+     */
     private void configureServer() {
-        List<ServerConnectorConfiguration> serverConnectorConfigurations = this.jerseyConfiguration.getServerConnectors();
-        serverConnectorConfigurations.forEach((configuration) -> {
-            ServerConnector connector = new ServerConnector(this.server);
-            connector.setName(configuration.getName());
-            connector.setHost(configuration.getHost());
-            connector.setPort(configuration.getPort());
-            this.server.addConnector(connector);
-        });
-
         if (System.getenv("ENABLE_TLS") != null && System.getenv("ENABLE_TLS").equals("true")) {
             validateKeyStoreEnvVariables();
             int securePort = validateSecurePort(System.getenv("JETTY_SERVER_SECURE_PORT"));
@@ -154,6 +150,15 @@ public class MantaMonitorJerseyServer {
             httpsConnector.setPort(securePort);
 
             this.server.addConnector(httpsConnector);
+        } else {
+            List<ServerConnectorConfiguration> serverConnectorConfigurations = this.jerseyConfiguration.getServerConnectors();
+            serverConnectorConfigurations.forEach((configuration) -> {
+                ServerConnector connector = new ServerConnector(this.server);
+                connector.setName(configuration.getName());
+                connector.setHost(configuration.getHost());
+                connector.setPort(configuration.getPort());
+                this.server.addConnector(connector);
+            });
         }
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setServer(this.server);

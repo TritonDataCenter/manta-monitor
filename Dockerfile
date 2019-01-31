@@ -16,7 +16,7 @@ ENV MANTA_MONITOR_VERSION=1.0.0-SNAPSHOT
 ENV ZULE_JCE_POLICY_CHECKSUM ebe83e1bf25de382ce093cf89e93a944
 ENV JAVA_HOME /usr/lib/jvm/zulu-8-amd64
 ENV INSTANCE_METADATA_PROPS_FILE /opt/manta-monitor/tmp/instance.properties
-ENV MANTA_MONITOR_VERSION 1.0.0
+ENV MANTA_MONITOR_VERSION 1.1.0
 
 # Installed tools:
 # ==============================================================================
