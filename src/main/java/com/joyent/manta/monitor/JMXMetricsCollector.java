@@ -48,9 +48,9 @@ public class JMXMetricsCollector {
                 // The exceptions object is not added to the MBeanServer, as there
                 // were no HTTP client exceptions raised yet. Return 0.
                 if (returnType.equals(Double.class)) {
-                    return (T) new Double("0");
+                    return (T) Double.valueOf(0d);
                 } else if (returnType.equals(Long.class)) {
-                    return (T) new Long("0");
+                    return (T) Long.valueOf(0L);
                 }
             }
             String message = "Requested MBean Object not found";
