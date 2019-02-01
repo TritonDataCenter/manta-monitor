@@ -42,6 +42,17 @@ public class JMXMetricsCollector {
     public <T extends Number> T getMBeanAttributeValue(final String mBeanObjectName, final String attribute, final Class<T> returnType) {
         ObjectName objectName = getObjectNameFromString(mBeanObjectName);
         if (objectName == null) {
+            // This also indicates that the mbeanObject is not registered.
+            // Check to see if it is an exceptions-$class object
+            if (mBeanObjectName.startsWith("exceptions")) {
+                // The exceptions object is not added to the MBeanServer, as there
+                // were no HTTP client exceptions raised yet. Return 0.
+                if (returnType.equals(Double.class)) {
+                    return (T) Double.valueOf(0d);
+                } else if (returnType.equals(Long.class)) {
+                    return (T) Long.valueOf(0L);
+                }
+            }
             String message = "Requested MBean Object not found";
             MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new InvalidObjectException(message));
             mBeanServerOperationException.addContextValue("objectName", mBeanObjectName);
@@ -113,12 +124,7 @@ public class JMXMetricsCollector {
 
     public boolean validateMbeanObject(final String objectName) {
         ObjectName mbeanObject = getObjectNameFromString(objectName);
-        boolean response = false;
-        if (mbeanObject != null) {
-            MBeanServer mBeanServer = platformMbeanServerProvider.getPlatformMBeanServer();
-            response =  mBeanServer.isRegistered(mbeanObject);
-        }
-        if (!response) {
+        if (mbeanObject == null) {
             String message = "Requested mbean object is not registered with the Platform MBean Server";
             MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new ValidationException(message));
             mBeanServerOperationException.addContextValue("objectName", objectName);
@@ -126,7 +132,8 @@ public class JMXMetricsCollector {
             mBeanServerOperationException.addContextValue("mbeanObjectKey", MBEAN_OBJECT_KEY);
             throw mBeanServerOperationException;
         }
-        return response;
+        MBeanServer mBeanServer = platformMbeanServerProvider.getPlatformMBeanServer();
+        return mBeanServer.isRegistered(mbeanObject);
     }
 
     @Nullable

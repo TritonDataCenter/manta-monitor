@@ -116,6 +116,64 @@ public class CustomPrometheusCollector extends Collector {
                 value)));
     }
 
+    private void importSocketTimeOutExceptionMetric(final ImmutableList.Builder<MetricFamilySamples> builder) {
+        builder.add((new GaugeMetricFamily("exceptions_socket_time_out_FifteenMinuteRate",
+                "Fifteen Minute Rate for SocketTimeOutExceptions",
+                retrieveMBeanAttributeValue("exceptions-SocketTimeoutException",
+                        "FifteenMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("exceptions_socket_time_out_FiveMinuteRate",
+                "Five Minute Rate for SocketTimeOutExceptions",
+                retrieveMBeanAttributeValue("exceptions-SocketTimeoutException",
+                        "FiveMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("exceptions_socket_time_out_OneMinuteRate",
+                "One Minute Rate for SocketTimeOutExceptions",
+                retrieveMBeanAttributeValue("exceptions-SocketTimeoutException",
+                        "OneMinuteRate", Double.class))));
+        builder.add((new CounterMetricFamily("exceptions_socket_time_out_count",
+                "Number of SocketTimeOutExceptions",
+                retrieveMBeanAttributeValue("exceptions-SocketTimeoutException",
+                        "Count", Long.class))));
+    }
+
+    private void importNoHttpResponseExceptionMetric(final ImmutableList.Builder<MetricFamilySamples> builder) {
+        builder.add((new GaugeMetricFamily("exceptions_no_http_response_FifteenMinuteRate",
+                "Fifteen Minute Rate for NoHttpResponseExceptions",
+                retrieveMBeanAttributeValue("exceptions-NoHttpResponseException",
+                        "FifteenMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("exceptions_no_http_response_FiveMinuteRate",
+                "Five Minute Rate for NoHttpResponseExceptions",
+                retrieveMBeanAttributeValue("exceptions-NoHttpResponseException",
+                        "FiveMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("exceptions_no_http_response_OneMinuteRate",
+                "One Minute Rate for NoHttpResponseExceptions",
+                retrieveMBeanAttributeValue("exceptions-NoHttpResponseException",
+                        "OneMinuteRate", Double.class))));
+        builder.add((new CounterMetricFamily("exceptions_no_http_response_count",
+                "Number of NoHttpResponseExceptions",
+                retrieveMBeanAttributeValue("exceptions-NoHttpResponseException",
+                        "Count", Long.class))));
+    }
+
+    private void importConnectionClosedExceptionMetric(final ImmutableList.Builder<MetricFamilySamples> builder) {
+        builder.add((new GaugeMetricFamily("exceptions_connection_closed_FifteenMinuteRate",
+                "Fifteen Minute Rate for ConnectionClosedExceptions",
+                retrieveMBeanAttributeValue("exceptions-ConnectionClosedException",
+                        "FifteenMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("exceptions_connection_closed_FiveMinuteRate",
+                "Five Minute Rate for ConnectionClosedExceptions",
+                retrieveMBeanAttributeValue("exceptions-ConnectionClosedException",
+                        "FiveMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("exceptions_connection_closed_OneMinuteRate",
+                "One Minute Rate for ConnectionClosedExceptions",
+                retrieveMBeanAttributeValue("exceptions-ConnectionClosedException",
+                        "OneMinuteRate", Double.class))));
+        builder.add((new CounterMetricFamily("exceptions_connection_closed_count",
+                "Number of ConnectionClosedExceptions",
+                retrieveMBeanAttributeValue("exceptions-ConnectionClosedException",
+                        "Count", Long.class))));
+    }
+
+
     @Override
     public List<MetricFamilySamples> collect() {
         final ImmutableList.Builder<MetricFamilySamples> metricFamilySamplesBuilder =
@@ -138,6 +196,12 @@ public class CustomPrometheusCollector extends Collector {
                 addElapsedTimeMetric(metricFamilySamplesBuilder, value.doubleValue());
             });
         }
+        // No need to validate. A default value of 0 will be added in case if
+        // the exceptions-$class object is not yet registered with the mbeanServer
+        importSocketTimeOutExceptionMetric(metricFamilySamplesBuilder);
+        importNoHttpResponseExceptionMetric(metricFamilySamplesBuilder);
+        importConnectionClosedExceptionMetric(metricFamilySamplesBuilder);
+
         return metricFamilySamplesBuilder.build();
     }
 }
