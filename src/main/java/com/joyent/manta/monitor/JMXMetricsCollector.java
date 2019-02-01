@@ -42,6 +42,17 @@ public class JMXMetricsCollector {
     public <T extends Number> T getMBeanAttributeValue(final String mBeanObjectName, final String attribute, final Class<T> returnType) {
         ObjectName objectName = getObjectNameFromString(mBeanObjectName);
         if (objectName == null) {
+            // This also indicates that the mbeanObject is not registered.
+            // Check to see if it is an exceptions-$class object
+            if (mBeanObjectName.startsWith("exceptions")) {
+                // The exceptions object is not added to the MBeanServer, as there
+                // were no HTTP client exceptions raised yet. Return 0.
+                if (returnType.equals(Double.class)) {
+                    return (T) new Double("0");
+                } else if (returnType.equals(Long.class)) {
+                    return (T) new Long("0");
+                }
+            }
             String message = "Requested MBean Object not found";
             MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new InvalidObjectException(message));
             mBeanServerOperationException.addContextValue("objectName", mBeanObjectName);
@@ -114,13 +125,6 @@ public class JMXMetricsCollector {
     public boolean validateMbeanObject(final String objectName) {
         ObjectName mbeanObject = getObjectNameFromString(objectName);
         if (mbeanObject == null) {
-            // This also indicates that the mbeanObject is not registered.
-            // Check to see if it is an exceptions-$class object
-            if (objectName.startsWith("exceptions")) {
-                // The exceptions object is not added to the MBeanServer, as there
-                // were no HTTP client exceptions raised yet.
-                return false;
-            }
             String message = "Requested mbean object is not registered with the Platform MBean Server";
             MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new ValidationException(message));
             mBeanServerOperationException.addContextValue("objectName", objectName);

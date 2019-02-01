@@ -196,15 +196,11 @@ public class CustomPrometheusCollector extends Collector {
                 addElapsedTimeMetric(metricFamilySamplesBuilder, value.doubleValue());
             });
         }
-        if (jmxMetricsCollector.validateMbeanObject("exceptions-SocketTimeoutException")) {
-            importSocketTimeOutExceptionMetric(metricFamilySamplesBuilder);
-        }
-        if (jmxMetricsCollector.validateMbeanObject("exceptions-NoHttpResponseException")) {
-            importNoHttpResponseExceptionMetric(metricFamilySamplesBuilder);
-        }
-        if (jmxMetricsCollector.validateMbeanObject("exceptions-ConnectionClosedException")) {
-            importConnectionClosedExceptionMetric(metricFamilySamplesBuilder);
-        }
+        // No need to validate. A default value of 0 will be added in case if
+        // the exceptions-$class object is not yet registered with the mbeanServer
+        importSocketTimeOutExceptionMetric(metricFamilySamplesBuilder);
+        importNoHttpResponseExceptionMetric(metricFamilySamplesBuilder);
+        importConnectionClosedExceptionMetric(metricFamilySamplesBuilder);
 
         return metricFamilySamplesBuilder.build();
     }
