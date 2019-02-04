@@ -21,9 +21,6 @@ import com.joyent.manta.monitor.commands.PutFileCommand;
 import io.honeybadger.reporter.NoticeReporter;
 
 import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.collect.ImmutableList.of;
 
@@ -44,8 +41,7 @@ public class FileUploadGetDeleteChain extends MantaOperationsChain {
     @Inject
     public FileUploadGetDeleteChain(final NoticeReporter reporter,
                                     final HoneyBadgerRequestFactory requestFactory,
-                                    final InstanceMetadata metadata,
-                                    @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
-        super(COMMANDS, reporter, requestFactory, metadata, clientStats);
+                                    final InstanceMetadata metadata) {
+        super(COMMANDS, reporter, requestFactory, metadata);
     }
 }

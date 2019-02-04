@@ -15,21 +15,17 @@ import io.prometheus.client.GaugeMetricFamily;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Class that collects JMX metrics from {@link JMXMetricsCollector} and presents them in Prometheus exposition format.
  */
 public class CustomPrometheusCollector extends Collector {
     private final JMXMetricsCollector jmxMetricsCollector;
-    private final Map<String, AtomicLong> clientStats;
+    //private final Map<String, AtomicLong> clientStats;
 
     @Inject
-    CustomPrometheusCollector(@Named("JMXMetricsCollector") final JMXMetricsCollector jmxMetricsCollector,
-                              @Named("SharedStats") final Map<String, AtomicLong> clientStats) {
+    CustomPrometheusCollector(@Named("JMXMetricsCollector") final JMXMetricsCollector jmxMetricsCollector) {
         this.jmxMetricsCollector = jmxMetricsCollector;
-        this.clientStats = clientStats;
     }
 
     private <T extends Number> T retrieveMBeanAttributeValue(final String mBeanObjectName,
@@ -190,11 +186,6 @@ public class CustomPrometheusCollector extends Collector {
         }
         if (jmxMetricsCollector.validateMbeanObject("retries")) {
             importRetries(metricFamilySamplesBuilder);
-        }
-        if (!clientStats.isEmpty()) {
-            clientStats.forEach((key, value) -> {
-                addElapsedTimeMetric(metricFamilySamplesBuilder, value.doubleValue());
-            });
         }
         // No need to validate. A default value of 0 will be added in case if
         // the exceptions-$class object is not yet registered with the mbeanServer

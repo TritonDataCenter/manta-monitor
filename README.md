@@ -281,9 +281,42 @@ retries_count 1.0
 # HELP retries_mean_rate Mean rate for number of retries
 # TYPE retries_mean_rate gauge
 retries_mean_rate 0.028769379866041778
-# HELP manta_monitor_operation_chain_elapsed_time Total time in milliseconds to complete one chain of operations
-# TYPE manta_monitor_operation_chain_elapsed_time gauge
-manta_monitor_operation_chain_elapsed_time 22677.0
+# HELP exceptions_socket_time_out_FifteenMinuteRate Fifteen Minute Rate for SocketTimeOutExceptions
+# TYPE exceptions_socket_time_out_FifteenMinuteRate gauge
+exceptions_socket_time_out_FifteenMinuteRate 0.0
+# HELP exceptions_socket_time_out_FiveMinuteRate Five Minute Rate for SocketTimeOutExceptions
+# TYPE exceptions_socket_time_out_FiveMinuteRate gauge
+exceptions_socket_time_out_FiveMinuteRate 0.0
+# HELP exceptions_socket_time_out_OneMinuteRate One Minute Rate for SocketTimeOutExceptions
+# TYPE exceptions_socket_time_out_OneMinuteRate gauge
+exceptions_socket_time_out_OneMinuteRate 0.0
+# HELP exceptions_socket_time_out_count Number of SocketTimeOutExceptions
+# TYPE exceptions_socket_time_out_count counter
+exceptions_socket_time_out_count 0.0
+# HELP exceptions_no_http_response_FifteenMinuteRate Fifteen Minute Rate for NoHttpResponseExceptions
+# TYPE exceptions_no_http_response_FifteenMinuteRate gauge
+exceptions_no_http_response_FifteenMinuteRate 0.0
+# HELP exceptions_no_http_response_FiveMinuteRate Five Minute Rate for NoHttpResponseExceptions
+# TYPE exceptions_no_http_response_FiveMinuteRate gauge
+exceptions_no_http_response_FiveMinuteRate 0.0
+# HELP exceptions_no_http_response_OneMinuteRate One Minute Rate for NoHttpResponseExceptions
+# TYPE exceptions_no_http_response_OneMinuteRate gauge
+exceptions_no_http_response_OneMinuteRate 0.0
+# HELP exceptions_no_http_response_count Number of NoHttpResponseExceptions
+# TYPE exceptions_no_http_response_count counter
+exceptions_no_http_response_count 0.0
+# HELP exceptions_connection_closed_FifteenMinuteRate Fifteen Minute Rate for ConnectionClosedExceptions
+# TYPE exceptions_connection_closed_FifteenMinuteRate gauge
+exceptions_connection_closed_FifteenMinuteRate 0.0
+# HELP exceptions_connection_closed_FiveMinuteRate Five Minute Rate for ConnectionClosedExceptions
+# TYPE exceptions_connection_closed_FiveMinuteRate gauge
+exceptions_connection_closed_FiveMinuteRate 0.0
+# HELP exceptions_connection_closed_OneMinuteRate One Minute Rate for ConnectionClosedExceptions
+# TYPE exceptions_connection_closed_OneMinuteRate gauge
+exceptions_connection_closed_OneMinuteRate 0.0
+# HELP exceptions_connection_closed_count Number of ConnectionClosedExceptions
+# TYPE exceptions_connection_closed_count counter
+exceptions_connection_closed_count 0.0
 ```
 For more details about the metrics refer to the document [here](doc/manta-monitor-metrics.md)
 ## License
