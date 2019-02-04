@@ -9,7 +9,6 @@ package com.joyent.manta.monitor;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.config.Configuration;
@@ -17,9 +16,6 @@ import com.joyent.manta.monitor.config.ConfigurationProvider;
 import io.honeybadger.reporter.NoticeReporter;
 
 import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This implementation of {@link Module} provides dependency injection for the application.
@@ -64,10 +60,6 @@ public class MantaMonitorModule implements Module {
 
     @Override
     public void configure(final Binder binder) {
-        binder.bind(new TypeLiteral<Map<String, AtomicLong>>() { })
-                .annotatedWith(Names.named("SharedStats"))
-                .toProvider(ConcurrentHashMap::new)
-                .asEagerSingleton();
         binder.bind(PlatformMbeanServerProvider.class).asEagerSingleton();
         binder.bind(JMXMetricsCollector.class).annotatedWith(Names.named("JMXMetricsCollector")).to(JMXMetricsCollector.class).asEagerSingleton();
         binder.bind(CustomPrometheusCollector.class).asEagerSingleton();
