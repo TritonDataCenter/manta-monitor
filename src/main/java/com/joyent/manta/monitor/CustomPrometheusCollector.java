@@ -21,7 +21,6 @@ import java.util.List;
  */
 public class CustomPrometheusCollector extends Collector {
     private final JMXMetricsCollector jmxMetricsCollector;
-    //private final Map<String, AtomicLong> clientStats;
 
     @Inject
     CustomPrometheusCollector(@Named("JMXMetricsCollector") final JMXMetricsCollector jmxMetricsCollector) {
