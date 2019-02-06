@@ -50,7 +50,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <!-- Dependency versions -->
         <dependency.slfj.version>1.7.25</dependency.slfj.version>
         <dependency.checkstyle.version>8.15</dependency.checkstyle.version>
-        <dependency.java-manta-client-unshaded.version>3.3.0</dependency.java-manta-client-unshaded.version>
+        <dependency.java-manta-client-unshaded.version>3.3.1</dependency.java-manta-client-unshaded.version>
         <dependency.honeybadger-java.version>2.0.1</dependency.honeybadger-java.version>
         <dependency.guice.version>4.2.2</dependency.guice.version>
         <dependency.commons-chain.version>1.1</dependency.commons-chain.version>

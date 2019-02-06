@@ -17,7 +17,8 @@ import javax.inject.Named;
 import java.util.List;
 
 /**
- * Class that collects JMX metrics from {@link JMXMetricsCollector} and presents them in Prometheus exposition format.
+ * Class that collects JMX metrics from {@link JMXMetricsCollector} and presents
+ * them in Prometheus exposition format.
  */
 public class CustomPrometheusCollector extends Collector {
     private final JMXMetricsCollector jmxMetricsCollector;
@@ -36,79 +37,129 @@ public class CustomPrometheusCollector extends Collector {
     private void importRequestsPut(final ImmutableList.Builder<MetricFamilySamples> builder) {
         builder.add((new GaugeMetricFamily("requests_put_mean",
                 "Put Requests Mean Value",
-                retrieveMBeanAttributeValue("requests-put", "Mean", Double.class))));
+                retrieveMBeanAttributeValue("requests-put",
+                        "Mean", Double.class))));
         builder.add((new GaugeMetricFamily("requests_put_count",
                 "Put Requests Count",
-                retrieveMBeanAttributeValue("requests-put", "Count", Long.class))));
+                retrieveMBeanAttributeValue("requests-put",
+                        "Count", Long.class))));
         builder.add((new GaugeMetricFamily("requests_put_50thPercentile",
                 "Put Requests 50thPercentile Value",
-                retrieveMBeanAttributeValue("requests-put", "50thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-put",
+                        "50thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_put_75thPercentile",
                 "Put Requests 75thPercentile Value",
-                retrieveMBeanAttributeValue("requests-put", "75thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-put",
+                        "75thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_put_95thPercentile",
                 "Put Requests 95thPercentile Value",
-                retrieveMBeanAttributeValue("requests-put", "95thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-put",
+                        "95thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_put_99thPercentile",
                 "Put Requests 99thPercentile Value",
-                retrieveMBeanAttributeValue("requests-put", "99thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-put",
+                        "99thPercentile", Double.class))));
+        builder.add((new GaugeMetricFamily("requests_put_FifteenMinuteRate",
+                "Put Requests Fifteen Minutes Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-put",
+                        "FifteenMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("requests_put_FiveMinuteRate",
+                "Put Requests Five Minutes Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-put",
+                        "FiveMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("requests_put_OneMinuteRate",
+                "Put Requests One Minutes Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-put",
+                        "OneMinuteRate", Double.class))));
     }
 
     private void importRequestsGet(final ImmutableList.Builder<MetricFamilySamples> builder) {
         builder.add((new GaugeMetricFamily("requests_get_mean",
                 "Get Requests Mean Value",
-                retrieveMBeanAttributeValue("requests-get", "Mean", Double.class))));
+                retrieveMBeanAttributeValue("requests-get",
+                        "Mean", Double.class))));
         builder.add((new GaugeMetricFamily("requests_get_50thPercentile",
                 "Get Requests 50thPercentile Value",
-                retrieveMBeanAttributeValue("requests-get", "50thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-get",
+                        "50thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_get_75thPercentile",
                 "Get Requests 75thPercentile Value",
-                retrieveMBeanAttributeValue("requests-get", "75thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-get",
+                        "75thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_get_95thPercentile",
                 "Get Requests 95thPercentile Value",
-                retrieveMBeanAttributeValue("requests-get", "95thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-get",
+                        "95thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_get_99thPercentile",
                 "Get Requests 99thPercentile Value",
-                retrieveMBeanAttributeValue("requests-get", "99thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-get",
+                        "99thPercentile", Double.class))));
         builder.add((new CounterMetricFamily("requests_get_count",
                 "Get Requests Count",
-                retrieveMBeanAttributeValue("requests-get", "Count", Long.class))));
+                retrieveMBeanAttributeValue("requests-get",
+                        "Count", Long.class))));
+        builder.add((new GaugeMetricFamily("requests_get_FifteenMinuteRate",
+                "Get Requests Fifteen Minutes Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-get",
+                        "FifteenMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("requests_get_FiveMinuteRate",
+                "Get Requests Five Minutes Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-get",
+                        "FiveMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("requests_get_OneMinuteRate",
+                "Get Requests One Minute Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-get",
+                        "OneMinuteRate", Double.class))));
     }
 
     private void importRequestDelete(final ImmutableList.Builder<MetricFamilySamples> builder) {
         builder.add((new GaugeMetricFamily("requests_delete_mean",
                 "Delete Requests Mean Value",
-                retrieveMBeanAttributeValue("requests-delete", "Mean", Double.class))));
+                retrieveMBeanAttributeValue("requests-delete",
+                        "Mean", Double.class))));
         builder.add((new GaugeMetricFamily("requests_delete_50thPercentile",
                 "Delete Requests 50thPercentile Value",
-                retrieveMBeanAttributeValue("requests-delete", "50thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-delete",
+                        "50thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_delete_75thPercentile",
                 "Delete Requests 75thPercentile Value",
-                retrieveMBeanAttributeValue("requests-delete", "75thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-delete",
+                        "75thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_delete_95thPercentile",
                 "Delete Requests 95thPercentile Value",
-                retrieveMBeanAttributeValue("requests-delete", "95thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-delete",
+                        "95thPercentile", Double.class))));
         builder.add((new GaugeMetricFamily("requests_delete_99thPercentile",
                 "Delete Requests 99thPercentile Value",
-                retrieveMBeanAttributeValue("requests-delete", "99thPercentile", Double.class))));
+                retrieveMBeanAttributeValue("requests-delete",
+                        "99thPercentile", Double.class))));
         builder.add((new CounterMetricFamily("requests_delete_count",
                 "Delete Requests Count",
-                retrieveMBeanAttributeValue("requests-delete", "Count", Long.class))));
+                retrieveMBeanAttributeValue("requests-delete",
+                        "Count", Long.class))));
+        builder.add((new GaugeMetricFamily("requests_delete_FifteenMinuteRate",
+                "Delete Requests Fifteen Minutes Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-delete",
+                        "FifteenMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("requests_delete_FiveMinuteRate",
+                "Delete Requests Five Minutes Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-delete",
+                        "FiveMinuteRate", Double.class))));
+        builder.add((new GaugeMetricFamily("requests_delete_OneMinuteRate",
+                "Delete Requests One Minute Rate in milliseconds",
+                retrieveMBeanAttributeValue("requests-delete",
+                        "OneMinuteRate", Double.class))));
     }
 
     private void importRetries(final ImmutableList.Builder<MetricFamilySamples> builder) {
         builder.add((new GaugeMetricFamily("retries_count",
                 "Number of Retries",
-                retrieveMBeanAttributeValue("retries", "Count", Long.class))));
+                retrieveMBeanAttributeValue("retries",
+                        "Count", Long.class))));
         builder.add((new GaugeMetricFamily("retries_mean_rate",
                 "Mean rate for number of retries",
-                retrieveMBeanAttributeValue("retries", "MeanRate", Double.class))));
-    }
-
-    private void addElapsedTimeMetric(final ImmutableList.Builder<MetricFamilySamples> builder, final Double value) {
-        builder.add((new GaugeMetricFamily("manta_monitor_operation_chain_elapsed_time",
-                "Total time in milliseconds to complete one chain of operations",
-                value)));
+                retrieveMBeanAttributeValue("retries",
+                        "MeanRate", Double.class))));
     }
 
     private void importSocketTimeOutExceptionMetric(final ImmutableList.Builder<MetricFamilySamples> builder) {
