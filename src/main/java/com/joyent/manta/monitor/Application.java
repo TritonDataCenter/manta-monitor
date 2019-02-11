@@ -7,6 +7,7 @@
  */
 package com.joyent.manta.monitor;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.joyent.manta.client.MantaClient;
@@ -16,6 +17,7 @@ import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.Runner;
 import io.honeybadger.reporter.HoneybadgerUncaughtExceptionHandler;
 import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Histogram;
 import io.prometheus.client.hotspot.DefaultExports;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
@@ -25,8 +27,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This is the main entry point into the Manta Monitor application.
@@ -103,7 +107,13 @@ public class Application {
                                                    final Injector injector) {
         final Set<ChainRunner> runningChains = new LinkedHashSet<>(configuration.getTestRunners().size());
         final MantaClient client = injector.getInstance(MantaClient.class);
-
+        // A List to register put request histogram metric for each chain
+        final ImmutableList.Builder<Histogram> requestPutHistogramList =
+                ImmutableList.builder();
+        // A Shared Map for storing the Histogram object for each chain
+        @SuppressWarnings("unchecked")
+        final Map<String, Histogram> requestPutHistogramMap =
+                injector.getInstance(ConcurrentHashMap.class);
         /* We programmatically load each monitor test chain as specified by the
          * configuration file. */
 
@@ -114,8 +124,17 @@ public class Application {
                 Class<MantaOperationsChain> chainClass =
                         (Class<MantaOperationsChain>)Class.forName(runner.getChainClassName());
                 MantaOperationsChain chain = injector.getInstance(chainClass);
+                Histogram requestPutHistogram = Histogram.build()
+                        .name("manta_monitor_put_request_latency_seconds_"
+                                + chain.getClass().getSimpleName())
+                        .help("Put Request latency in seconds")
+                        .create();
+                // Add the histogram here, to register it later below
+                requestPutHistogramList.add(requestPutHistogram);
+                requestPutHistogramMap.put(chain.getClass().getSimpleName(),
+                        requestPutHistogram);
                 ChainRunner chainRunner = new ChainRunner(chain, runner,
-                        client, UNCAUGHT_EXCEPTION_HANDLER);
+                        client, UNCAUGHT_EXCEPTION_HANDLER, requestPutHistogramMap);
                 runningChains.add(chainRunner);
             } catch (ClassNotFoundException e) {
                 LOG.error("Unable to load class: {}", runner.getChainClassName());
@@ -133,6 +152,9 @@ public class Application {
         for (boolean jmxStatsAvailable = false; !jmxStatsAvailable;) {
             try {
                 CollectorRegistry.defaultRegistry.register(collector);
+                for (Histogram requestPutHistogram : requestPutHistogramList.build()) {
+                    requestPutHistogram.register();
+                }
                 jmxStatsAvailable = true;
             } catch (MBeanServerOperationException e) {
                 // Wait for the JMX stats to be available for an addition 2 seconds

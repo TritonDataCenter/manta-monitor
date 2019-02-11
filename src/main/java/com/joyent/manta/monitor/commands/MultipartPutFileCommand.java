@@ -17,6 +17,7 @@ import com.joyent.manta.client.multipart.ServerSideMultipartUpload;
 import com.joyent.manta.http.MantaHttpHeaders;
 import com.joyent.manta.monitor.MantaOperationContext;
 import com.joyent.manta.monitor.MantaOperationException;
+import io.prometheus.client.Histogram;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.input.CloseShieldInputStream;
 
@@ -44,12 +45,15 @@ public class MultipartPutFileCommand extends PutFileCommand {
         context.setFilePath(filePath);
 
         try {
+            Histogram.Timer timer = context.getRequestPutHistogramsKey()
+                    .get(context.getChainClassNameKey()).startTimer();
             final ServerSideMultipartUpload upload = buildMultipartUpload(
                     filePath, context, multipartManager);
             final int totalParts = calculateNumberOfParts(context,
                     multipartManager.getMinimumPartSize());
             Set<MantaMultipartUploadPart> parts = createAndUploadParts(upload, context, totalParts, multipartManager);
             multipartManager.complete(upload, parts);
+            timer.observeDuration();
         } finally {
             Files.deleteIfExists(context.getTestFile());
         }

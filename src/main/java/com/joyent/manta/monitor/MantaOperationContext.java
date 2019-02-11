@@ -9,6 +9,7 @@ package com.joyent.manta.monitor;
 
 import com.google.common.base.Stopwatch;
 import com.joyent.manta.client.MantaClient;
+import io.prometheus.client.Histogram;
 import org.apache.commons.chain.Context;
 import org.apache.commons.codec.binary.Hex;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,8 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public static final String RESPONSE_TIMES_KEY = "responseTime";
     public static final String EXCEPTION_KEY = "exception";
     public static final String STOPWATCH_KEY = "stopwatch";
+    public static final String REQUEST_PUT_HISTOGRAMS_KEY = "requestPutHistograms";
+    public static final String CHAIN_CLASS_NAME_KEY = "chainClassName";
 
     public MantaOperationContext() {
         super();
@@ -147,6 +150,25 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public Stopwatch getStopWatch() {
         return (Stopwatch)get(STOPWATCH_KEY);
     }
+
+    public MantaOperationContext setRequestPutHistogramsKey(final Map<String, Histogram> histogramMap) {
+        put(REQUEST_PUT_HISTOGRAMS_KEY, histogramMap);
+        return this;
+    }
+
+    public Map<String, Histogram> getRequestPutHistogramsKey() {
+        return (Map<String, Histogram>)get(REQUEST_PUT_HISTOGRAMS_KEY);
+    }
+
+    public MantaOperationContext setChainClassNameKey(final String chainClassName) {
+        put(CHAIN_CLASS_NAME_KEY, chainClassName);
+        return this;
+    }
+
+    public String getChainClassNameKey() {
+        return (String)get(CHAIN_CLASS_NAME_KEY);
+    }
+
 
     @Nullable
     public Exception getException() {
