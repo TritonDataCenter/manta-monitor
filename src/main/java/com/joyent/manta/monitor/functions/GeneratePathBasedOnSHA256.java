@@ -23,13 +23,13 @@ public class GeneratePathBasedOnSHA256 implements Function<byte[], String> {
     /**
      * The maximum number of directories to create.
      */
-    private final int DIR_DEPTH = 7;
+    private static final int DIR_DEPTH = 7;
 
     /**
      * The number of directories on the path from leftmost side to ensure only
      * have a limited repeating set of names.
      */
-    private final int LIMITED_DIR_COUNT_DEPTH = 3;
+    private static final int LIMITED_DIR_COUNT_DEPTH = 3;
 
     public GeneratePathBasedOnSHA256(final String rootDirectory) {
         this.rootDirectory = rootDirectory;
