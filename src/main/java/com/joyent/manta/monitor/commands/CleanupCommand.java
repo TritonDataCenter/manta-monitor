@@ -10,40 +10,21 @@ package com.joyent.manta.monitor.commands;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.exception.MantaClientHttpResponseException;
 import com.joyent.manta.monitor.MantaOperationContext;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-
-import static com.joyent.manta.client.MantaClient.SEPARATOR;
 
 /**
  * {@link org.apache.commons.chain.Command} implementation that deletes all of
  * the directories (and any files left over) within the base directory path.
  */
-public class CleanupDirsCommand implements MantaOperationCommand {
-    public static final CleanupDirsCommand INSTANCE = new CleanupDirsCommand();
+public class CleanupCommand implements MantaOperationCommand {
+    public static final CleanupCommand INSTANCE = new CleanupCommand();
 
     @Override
     public boolean execute(final MantaOperationContext context) throws Exception {
         final MantaClient client = context.getMantaClient();
-        final String baseDir = context.getTestBaseDir();
-        final String lowestDir = FilenameUtils.getFullPathNoEndSeparator(context.getFilePath());
-        final String lowestDirWithoutBase = StringUtils.substringAfter(lowestDir, baseDir);
-        final String[] dirs = StringUtils.split(lowestDirWithoutBase, SEPARATOR);
 
-        /* We want to delete only the files and directories related to the
-         * directory structure in the file sent in this chain and no others. */
-        for (int i = dirs.length - 1; i >= 0; i--) {
-            StringBuilder dir = new StringBuilder(baseDir);
-            for (int j = 0; j <= i; j++) {
-                dir.append(SEPARATOR).append(dirs[j]);
-            }
-
-            deleteObject(client, dir.toString());
-        }
-
-        deleteObject(client, baseDir);
+        deleteObject(client, context.getFilePath());
 
         context.getStopWatch().stop();
         return PROCESSING_COMPLETE;
@@ -52,6 +33,8 @@ public class CleanupDirsCommand implements MantaOperationCommand {
     private static void deleteObject(final MantaClient client,
                                      final String object) throws IOException {
         try {
+            /* We are relying on the prune directory settings to delete a certain
+             * number of subdirectories under the object. */
             client.delete(object);
         } catch (MantaClientHttpResponseException e) {
             switch (e.getServerCode()) {

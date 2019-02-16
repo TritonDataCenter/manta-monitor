@@ -14,7 +14,6 @@ import com.joyent.manta.monitor.functions.GeneratePathBasedOnSHA256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,9 +66,10 @@ public class ChainRunner {
         LOG.info("Starting {} threads to run [{}]", threads, name);
 
         final Callable<Void> callable = () -> {
+            final String baseDir = buildBaseDir();
+            final Function<byte[], String> pathGenerator = new GeneratePathBasedOnSHA256(baseDir);
+
             while (running) {
-                final String baseDir = buildBaseDir();
-                final Function<byte[], String> pathGenerator = new GeneratePathBasedOnSHA256(baseDir);
                 final MantaOperationContext context = new MantaOperationContext()
                         .setMantaClient(client)
                         .setFilePathGenerationFunction(pathGenerator)
@@ -105,6 +105,6 @@ public class ChainRunner {
     private String buildBaseDir() {
         return client.getContext().getMantaHomeDirectory()
                 + SEPARATOR + "stor" + SEPARATOR + "manta-monitor-data"
-                + SEPARATOR + UUID.randomUUID();
+                + SEPARATOR + chain.getClass().getSimpleName();
     }
 }

@@ -8,6 +8,7 @@
 package com.joyent.manta.monitor.functions;
 
 import org.apache.commons.codec.binary.Hex;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Test
@@ -20,6 +21,7 @@ public class GeneratePathBasedOnSHA256Test {
         final byte[] checksum = Hex.decodeHex(sha256.toCharArray());
         final String path = generator.apply(checksum);
 
-        System.out.println(path);
+        Assert.assertEquals(path, "/user/stor/files/0/1/0/9/b/3/c/",
+                "Expected directory structure wasn't created");
     }
 }
