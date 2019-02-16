@@ -40,19 +40,19 @@ public class ChainRunner {
 
     private volatile boolean running = true;
 
-    private final Map<String, Histogram> requestPutHistogramMap;
+    private final Map<String, Histogram> requestPutHistogramsMap;
 
     public ChainRunner(final MantaOperationsChain chain,
                        final Runner runnerConfig,
                        final MantaClient client,
                        final Thread.UncaughtExceptionHandler exceptionHandler,
-                       final Map<String, Histogram> requestPutHistogramMap) {
+                       final Map<String, Histogram> requestPutHistogramsMap) {
         this.chain = chain;
         this.name = runnerConfig.getName();
         this.threads = runnerConfig.getThreads();
         this.client = client;
         this.runnerConfig = runnerConfig;
-        this.requestPutHistogramMap = requestPutHistogramMap;
+        this.requestPutHistogramsMap = requestPutHistogramsMap;
 
         final ThreadGroup threadGroup = new ThreadGroup(name);
         threadGroup.setDaemon(true);
@@ -82,7 +82,7 @@ public class ChainRunner {
                         .setMinFileSize(runnerConfig.getMinFileSize())
                         .setMaxFileSize(runnerConfig.getMaxFileSize())
                         .setChainClassNameKey(chain.getClass().getSimpleName())
-                        .setRequestPutHistogramsKey(requestPutHistogramMap)
+                        .setRequestPutHistogramsMap(requestPutHistogramsMap)
                         .setTestBaseDir(baseDir);
 
                 chain.execute(context);

@@ -78,8 +78,6 @@ public class MantaMonitorModule implements Module {
         binder.bind(URI.class).annotatedWith(Names.named("configUri")).toInstance(configURI);
         binder.bind(Configuration.class).toProvider(ConfigurationProvider.class);
         binder.bind(new TypeLiteral<Map<String, Histogram>>() { })
-                .annotatedWith(Names.named("RequestPutHistogramMap"))
-                .toProvider(ConcurrentHashMap::new)
-                .asEagerSingleton();
+                .toInstance(new ConcurrentHashMap<String, Histogram>());
     }
 }

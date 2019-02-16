@@ -7,9 +7,10 @@
  */
 package com.joyent.manta.monitor;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.chains.ChainRunner;
 import com.joyent.manta.monitor.chains.MantaOperationsChain;
@@ -105,15 +106,18 @@ public class Application {
      */
     private static Set<ChainRunner> startAllChains(final Configuration configuration,
                                                    final Injector injector) {
-        final Set<ChainRunner> runningChains = new LinkedHashSet<>(configuration.getTestRunners().size());
+        final Set<ChainRunner> runningChains =
+                new LinkedHashSet<>(configuration.getTestRunners().size());
         final MantaClient client = injector.getInstance(MantaClient.class);
-        // A List to register put request histogram metric for each chain
-        final ImmutableList.Builder<Histogram> requestPutHistogramList =
-                ImmutableList.builder();
-        // A Shared Map for storing the Histogram object for each chain
-        @SuppressWarnings("unchecked")
-        final Map<String, Histogram> requestPutHistogramMap =
-                injector.getInstance(ConcurrentHashMap.class);
+        // A Shared Map for storing the Histogram object for each chain.
+        // This map is shared across all the running chains with key as the name
+        // of the chain class and value as the histogram object for that chain.
+        // Each chain will thereby be using the same histogram object to record
+        // the time elapsed during the execution of the put request.
+        final Map<String, Histogram> requestPutHistogramsMap =
+                injector.getInstance(
+                        Key.get(new TypeLiteral<ConcurrentHashMap<String, Histogram>>() { }
+                        ));
         /* We programmatically load each monitor test chain as specified by the
          * configuration file. */
 
@@ -130,11 +134,10 @@ public class Application {
                         .help("Put Request latency in seconds")
                         .create();
                 // Add the histogram here, to register it later below
-                requestPutHistogramList.add(requestPutHistogram);
-                requestPutHistogramMap.put(chain.getClass().getSimpleName(),
+                requestPutHistogramsMap.put(chain.getClass().getSimpleName(),
                         requestPutHistogram);
                 ChainRunner chainRunner = new ChainRunner(chain, runner,
-                        client, UNCAUGHT_EXCEPTION_HANDLER, requestPutHistogramMap);
+                        client, UNCAUGHT_EXCEPTION_HANDLER, requestPutHistogramsMap);
                 runningChains.add(chainRunner);
             } catch (ClassNotFoundException e) {
                 LOG.error("Unable to load class: {}", runner.getChainClassName());
@@ -152,9 +155,11 @@ public class Application {
         for (boolean jmxStatsAvailable = false; !jmxStatsAvailable;) {
             try {
                 CollectorRegistry.defaultRegistry.register(collector);
-                for (Histogram requestPutHistogram : requestPutHistogramList.build()) {
-                    requestPutHistogram.register();
-                }
+                // Use the shared map from above to register the histograms,
+                // for each running chain, to the defaultRegistry.
+                requestPutHistogramsMap.forEach((key, value) -> {
+                    value.register();
+                });
                 jmxStatsAvailable = true;
             } catch (MBeanServerOperationException e) {
                 // Wait for the JMX stats to be available for an addition 2 seconds

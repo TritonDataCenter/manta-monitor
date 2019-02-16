@@ -42,7 +42,7 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public static final String RESPONSE_TIMES_KEY = "responseTime";
     public static final String EXCEPTION_KEY = "exception";
     public static final String STOPWATCH_KEY = "stopwatch";
-    public static final String REQUEST_PUT_HISTOGRAMS_KEY = "requestPutHistograms";
+    public static final String REQUEST_PUT_HISTOGRAMS_MAP = "requestPutHistograms";
     public static final String CHAIN_CLASS_NAME_KEY = "chainClassName";
 
     public MantaOperationContext() {
@@ -151,13 +151,14 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
         return (Stopwatch)get(STOPWATCH_KEY);
     }
 
-    public MantaOperationContext setRequestPutHistogramsKey(final Map<String, Histogram> histogramMap) {
-        put(REQUEST_PUT_HISTOGRAMS_KEY, histogramMap);
+    public MantaOperationContext setRequestPutHistogramsMap(final Map<String,
+            Histogram> histogramMap) {
+        put(REQUEST_PUT_HISTOGRAMS_MAP, histogramMap);
         return this;
     }
 
-    public Map<String, Histogram> getRequestPutHistogramsKey() {
-        return (Map<String, Histogram>)get(REQUEST_PUT_HISTOGRAMS_KEY);
+    public Map<String, Histogram> getRequestPutHistogramsMap() {
+        return (Map<String, Histogram>)get(REQUEST_PUT_HISTOGRAMS_MAP);
     }
 
     public MantaOperationContext setChainClassNameKey(final String chainClassName) {
