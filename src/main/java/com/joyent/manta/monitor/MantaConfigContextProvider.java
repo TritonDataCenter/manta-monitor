@@ -26,6 +26,7 @@ public class MantaConfigContextProvider implements Provider<ConfigContext> {
     private static final Logger LOG = LoggerFactory.getLogger(MantaConfigContextProvider.class);
     private static final int DEFAULT_TIMEOUT = 5_000; // 5 seconds in milliseconds
     private static final int DEFAULT_PRUNE_DEPTH = 3;
+    private static final int DEFAULT_SKIP_DEPTH = 4;
 
     public MantaConfigContextProvider() {
     }
@@ -39,6 +40,7 @@ public class MantaConfigContextProvider implements Provider<ConfigContext> {
         properties.putIfAbsent(MapConfigContext.MANTA_TIMEOUT_KEY, DEFAULT_TIMEOUT);
         properties.putIfAbsent(MapConfigContext.MANTA_TCP_SOCKET_TIMEOUT_KEY, DEFAULT_TIMEOUT);
         properties.putIfAbsent(MapConfigContext.MANTA_PRUNE_EMPTY_PARENT_DEPTH_KEY, DEFAULT_PRUNE_DEPTH);
+        properties.putIfAbsent(MapConfigContext.MANTA_SKIP_DIRECTORY_DEPTH_KEY, DEFAULT_SKIP_DEPTH);
 
         /* We explicitly pass the sysprops to the constructor, so that our
          * defaults will be applied. */
