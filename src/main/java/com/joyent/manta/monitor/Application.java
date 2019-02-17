@@ -113,7 +113,7 @@ public class Application {
         // This map is shared across all the running chains with key as the name
         // of the chain class and value as the histogram object for that chain.
         // Each chain will thereby be using the same histogram object to record
-        // the time elapsed during the execution of the put request.
+        // the time elapsed during the execution of put directory and put file request.
         final Map<String, Histogram> requestPutHistogramsMap =
                 injector.getInstance(
                         Key.get(new TypeLiteral<ConcurrentHashMap<String, Histogram>>() { }
@@ -131,7 +131,9 @@ public class Application {
                 Histogram requestPutHistogram = Histogram.build()
                         .name("manta_monitor_put_request_latency_seconds_"
                                 + chain.getClass().getSimpleName())
-                        .help("Put Request latency in seconds")
+                        .help("Metric that gives a cumulative observation for "
+                                + "latency, in seconds, in creating a directory and "
+                                + "uploading a file")
                         .create();
                 // Add the histogram here, to register it later below
                 requestPutHistogramsMap.put(chain.getClass().getSimpleName(),
