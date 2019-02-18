@@ -10,8 +10,7 @@ package com.joyent.manta.monitor.chains;
 import com.google.common.collect.ImmutableList;
 import com.joyent.manta.monitor.HoneyBadgerRequestFactory;
 import com.joyent.manta.monitor.InstanceMetadata;
-import com.joyent.manta.monitor.commands.CleanupDirsCommand;
-import com.joyent.manta.monitor.commands.DeleteFileCommand;
+import com.joyent.manta.monitor.commands.CleanupCommand;
 import com.joyent.manta.monitor.commands.GenerateFileCommand;
 import com.joyent.manta.monitor.commands.GetFileCommand;
 import com.joyent.manta.monitor.commands.HeadFileCommand;
@@ -35,8 +34,7 @@ public class FileMultipartUploadGetDeleteChain extends MantaOperationsChain {
             MultipartPutFileCommand.INSTANCE,
             HeadFileCommand.INSTANCE,
             GetFileCommand.INSTANCE,
-            DeleteFileCommand.INSTANCE,
-            CleanupDirsCommand.INSTANCE);
+            CleanupCommand.INSTANCE);
 
     @Inject
     public FileMultipartUploadGetDeleteChain(final NoticeReporter reporter,
