@@ -109,7 +109,7 @@ public class Application {
         final Set<ChainRunner> runningChains =
                 new LinkedHashSet<>(configuration.getTestRunners().size());
         final MantaClient client = injector.getInstance(MantaClient.class);
-        /*
+        /**
          * A Shared Map for storing the Histogram object for each chain.
          * This map is shared across all the running chains with key as the name
          * of the chain class and value as the histogram object for that chain.
