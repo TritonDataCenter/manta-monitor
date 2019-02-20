@@ -26,7 +26,7 @@ public class ConfigurationProviderTest {
 
         Set<Runner> expected = ImmutableSet.of(
                 new Runner("com.joyent.manta.monitor.chains.FileUploadGetDeleteChain",
-                        "simple-put", 5, 4096, 65536)
+                        "simple-put", 5, 4096, 4096)
         );
         Configuration config = instance.get();
         Assert.assertNotNull(config);

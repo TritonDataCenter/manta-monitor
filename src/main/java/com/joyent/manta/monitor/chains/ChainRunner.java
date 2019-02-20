@@ -11,9 +11,11 @@ import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.MantaOperationContext;
 import com.joyent.manta.monitor.config.Runner;
 import com.joyent.manta.monitor.functions.GeneratePathBasedOnSHA256;
+import io.prometheus.client.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,15 +39,19 @@ public class ChainRunner {
 
     private volatile boolean running = true;
 
+    private final Map<String, Histogram> requestPutHistogramsMap;
+
     public ChainRunner(final MantaOperationsChain chain,
                        final Runner runnerConfig,
                        final MantaClient client,
-                       final Thread.UncaughtExceptionHandler exceptionHandler) {
+                       final Thread.UncaughtExceptionHandler exceptionHandler,
+                       final Map<String, Histogram> requestPutHistogramsMap) {
         this.chain = chain;
         this.name = runnerConfig.getName();
         this.threads = runnerConfig.getThreads();
         this.client = client;
         this.runnerConfig = runnerConfig;
+        this.requestPutHistogramsMap = requestPutHistogramsMap;
 
         final ThreadGroup threadGroup = new ThreadGroup(name);
         threadGroup.setDaemon(true);
@@ -75,6 +81,8 @@ public class ChainRunner {
                         .setFilePathGenerationFunction(pathGenerator)
                         .setMinFileSize(runnerConfig.getMinFileSize())
                         .setMaxFileSize(runnerConfig.getMaxFileSize())
+                        .setChainClassNameKey(chain.getClass().getSimpleName())
+                        .setRequestPutHistograms(requestPutHistogramsMap)
                         .setTestBaseDir(baseDir);
 
                 chain.execute(context);

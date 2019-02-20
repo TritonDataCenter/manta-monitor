@@ -14,6 +14,7 @@ import com.joyent.manta.client.MantaObjectResponse;
 import com.joyent.manta.http.MantaHttpHeaders;
 import com.joyent.manta.monitor.MantaOperationContext;
 import com.joyent.manta.monitor.MantaOperationException;
+import io.prometheus.client.Histogram;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -24,8 +25,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This {@link org.apache.commons.chain.Command} implementation performs uploading a file to simulate a user mput command
- * and thereby gather metrics for requests-put.
+ * This {@link org.apache.commons.chain.Command} implementation performs uploading
+ * a file to simulate a user mput command and thereby gather metrics for requests-put.
  */
 public class PutFileCommand implements MantaOperationCommand {
     public static final PutFileCommand INSTANCE = new PutFileCommand();
@@ -44,6 +45,8 @@ public class PutFileCommand implements MantaOperationCommand {
 
         try {
             stopwatch.start();
+            Histogram.Timer timer = context.getRequestPutHistograms()
+                    .get(context.getChainClassNameKey()).startTimer();
             final MantaHttpHeaders headers = buildHeaders();
             final MantaMetadata metadata = buildMetadata(context);
 
@@ -51,6 +54,7 @@ public class PutFileCommand implements MantaOperationCommand {
              * pathological latency numbers. */
             final MantaObjectResponse response = client.put(
                     filePath, file, headers, metadata);
+            timer.observeDuration();
             stopwatch.stop();
             final UUID requestId = UUID.fromString(response.getRequestId());
             final Integer responseTime = parseResponseTime(response.getHttpHeaders());

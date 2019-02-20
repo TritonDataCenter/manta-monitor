@@ -9,13 +9,17 @@ package com.joyent.manta.monitor;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
+import java.util.Map;
 import com.google.inject.name.Names;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.config.Configuration;
 import com.joyent.manta.monitor.config.ConfigurationProvider;
 import io.honeybadger.reporter.NoticeReporter;
+import io.prometheus.client.Histogram;
 
 import java.net.URI;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This implementation of {@link Module} provides dependency injection for the application.
@@ -61,7 +65,9 @@ public class MantaMonitorModule implements Module {
     @Override
     public void configure(final Binder binder) {
         binder.bind(PlatformMbeanServerProvider.class).asEagerSingleton();
-        binder.bind(JMXMetricsCollector.class).annotatedWith(Names.named("JMXMetricsCollector")).to(JMXMetricsCollector.class).asEagerSingleton();
+        binder.bind(JMXMetricsCollector.class).
+                annotatedWith(Names.named("JMXMetricsCollector")).
+                to(JMXMetricsCollector.class).asEagerSingleton();
         binder.bind(CustomPrometheusCollector.class).asEagerSingleton();
         binder.bind(InstanceMetadata.class).asEagerSingleton();
         binder.bind(io.honeybadger.reporter.config.ConfigContext.class).toInstance(hbConfig);
@@ -71,5 +77,7 @@ public class MantaMonitorModule implements Module {
         binder.bind(MantaClient.class).toProvider(MantaClientProvider.class).asEagerSingleton();
         binder.bind(URI.class).annotatedWith(Names.named("configUri")).toInstance(configURI);
         binder.bind(Configuration.class).toProvider(ConfigurationProvider.class);
+        binder.bind(new TypeLiteral<Map<String, Histogram>>() { })
+                .toInstance(new ConcurrentHashMap<String, Histogram>());
     }
 }
