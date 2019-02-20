@@ -29,7 +29,7 @@ public class MkdirCommand implements MantaOperationCommand {
           * is updated with cumulative values added here and in the
           * {@link PutFileCommand} and {@link MultipartPutFileCommand}
           */
-        Histogram.Timer timer = context.getRequestPutHistogramsMap()
+        Histogram.Timer timer = context.getRequestPutHistograms()
                 .get(context.getChainClassNameKey()).startTimer();
 
         client.putDirectory(dir, true);

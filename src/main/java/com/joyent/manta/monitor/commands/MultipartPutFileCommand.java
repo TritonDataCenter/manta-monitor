@@ -45,7 +45,7 @@ public class MultipartPutFileCommand extends PutFileCommand {
         context.setFilePath(filePath);
 
         try {
-            Histogram.Timer timer = context.getRequestPutHistogramsMap()
+            Histogram.Timer timer = context.getRequestPutHistograms()
                     .get(context.getChainClassNameKey()).startTimer();
             final ServerSideMultipartUpload upload = buildMultipartUpload(
                     filePath, context, multipartManager);

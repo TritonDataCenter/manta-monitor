@@ -45,7 +45,7 @@ public class PutFileCommand implements MantaOperationCommand {
 
         try {
             stopwatch.start();
-            Histogram.Timer timer = context.getRequestPutHistogramsMap()
+            Histogram.Timer timer = context.getRequestPutHistograms()
                     .get(context.getChainClassNameKey()).startTimer();
             final MantaHttpHeaders headers = buildHeaders();
             final MantaMetadata metadata = buildMetadata(context);

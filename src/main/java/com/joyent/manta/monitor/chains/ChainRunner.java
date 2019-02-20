@@ -82,7 +82,7 @@ public class ChainRunner {
                         .setMinFileSize(runnerConfig.getMinFileSize())
                         .setMaxFileSize(runnerConfig.getMaxFileSize())
                         .setChainClassNameKey(chain.getClass().getSimpleName())
-                        .setRequestPutHistogramsMap(requestPutHistogramsMap)
+                        .setRequestPutHistograms(requestPutHistogramsMap)
                         .setTestBaseDir(baseDir);
 
                 chain.execute(context);

@@ -109,11 +109,13 @@ public class Application {
         final Set<ChainRunner> runningChains =
                 new LinkedHashSet<>(configuration.getTestRunners().size());
         final MantaClient client = injector.getInstance(MantaClient.class);
-        // A Shared Map for storing the Histogram object for each chain.
-        // This map is shared across all the running chains with key as the name
-        // of the chain class and value as the histogram object for that chain.
-        // Each chain will thereby be using the same histogram object to record
-        // the time elapsed during the execution of put directory and put file request.
+        /*
+         * A Shared Map for storing the Histogram object for each chain.
+         * This map is shared across all the running chains with key as the name
+         * of the chain class and value as the histogram object for that chain.
+         * Each chain will thereby be using the same histogram object to record
+         * the time elapsed during the execution of put directory and put file request.
+         */
         final Map<String, Histogram> requestPutHistogramsMap =
                 injector.getInstance(
                         Key.get(new TypeLiteral<ConcurrentHashMap<String, Histogram>>() { }
@@ -157,8 +159,8 @@ public class Application {
         for (boolean jmxStatsAvailable = false; !jmxStatsAvailable;) {
             try {
                 CollectorRegistry.defaultRegistry.register(collector);
-                // Use the shared map from above to register the histograms,
-                // for each running chain, to the defaultRegistry.
+                /* Use the shared map from above to register the histograms,
+                 * for each running chain, to the defaultRegistry. */
                 requestPutHistogramsMap.forEach((key, value) -> {
                     value.register();
                 });
