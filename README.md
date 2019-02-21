@@ -112,7 +112,7 @@ Once you have successfully created the server's keystore and truststore, you can
 the application:
 
 ```
-docker run -p 8090:8090 -p 8443:8443 -d \
+docker run -p 8443:8443 -d \
     --name manta-monitor-1
     --memory 1G \
     --label triton.cns.services=manta-monitor \
@@ -128,7 +128,6 @@ docker run -p 8090:8090 -p 8443:8443 -d \
     -e MANTA_TIMEOUT=4000 \
     -e MANTA_METRIC_REPORTER_MODE=JMX \
     -e MANTA_HTTP_RETRIES=3 \
-    -e JETTY_SERVER_PORT=8090 \
     -e ENABLE_TLS=true \
     -e KEYSTORE_PATH=/opt/manta-monitor/keystore \
     -e KEYSTORE_PASS=//XXXXXXXX \
@@ -187,6 +186,9 @@ Additional notes:
         key_file: prometheus.key
         insecure_skip_verify: true
   ```
+### Deployment
+To deploy the application in a production environment, refer to the
+[Manta Monitor Deployment document](doc/manta-monitor-deployment.md).
  
 ### Build
 
@@ -317,6 +319,26 @@ exceptions_connection_closed_OneMinuteRate 0.0
 # HELP exceptions_connection_closed_count Number of ConnectionClosedExceptions
 # TYPE exceptions_connection_closed_count counter
 exceptions_connection_closed_count 0.0
+# HELP manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain Metric that gives a cumulative observation for
+# latency, in seconds, in creating a directory and uploading a file
+# TYPE manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain histogram
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.005",} 0.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.01",} 0.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.025",} 0.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.05",} 0.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.075",} 0.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.1",} 0.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.25",} 0.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.5",} 12.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="0.75",} 22.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="1.0",} 22.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="2.5",} 38.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="5.0",} 46.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="7.5",} 46.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="10.0",} 46.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_bucket{le="+Inf",} 46.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_count 46.0
+manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain_sum 73.735187768
 ```
 For more details about the metrics refer to the document [here](doc/manta-monitor-metrics.md)
 ## License
