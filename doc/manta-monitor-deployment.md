@@ -879,7 +879,7 @@ connects to a given manta-monitor endpoint and validates the metrics. Follow the
 ##### Download the jar
 
 ```
-wget https://github.com/1010sachin/manta-monitor-test-harness/releases/download/v1.0/manta-monitor-test-harness-1.0-jar-with-dependencies.jar
+wget https://github.com/1010sachin/manta-monitor-test-harness/releases/download/v1.0.0/manta-monitor-test-harness-1.0.0-jar-with-dependencies.jar
 ```
 
 Once the jar is downloaded, make sure manta-monitor is up and running. If you have just started the manta-monitor wait for at least 5 minutes in order for the metrics to start coming in.
