@@ -23,3 +23,13 @@ Example values of $CLASS includes SocketTimeoutException, NoHTTPResponseExceptio
 * exceptions_$CLASS_count :  A [counter](https://prometheus.io/docs/concepts/metric_types/#counter) type metric that
 gives the count of the number of exceptions occurred while executing HTTP requests. Example values of $CLASS includes 
 SocketTimeoutException, NoHTTPResponseException and ConnectionClosedException.
+* manta_monitor_put_request_latency_seconds_$ChainClassName : A [histogram](https://prometheus.io/docs/concepts/metric_types/#histogram)
+type metric that observes the cumulative time elapsed for each [Put Directory](../src/main/java/com/joyent/manta/monitor/commands/MkdirCommand.java)
+and [Put File](../src/main/java/com/joyent/manta/monitor/commands/PutFileCommand.java). Example values of $ChainClassName
+are FileUploadGetDeleteChain and FileMultipartUploadGetDeleteChain.
+The metric is presented in three categories:
+    * _bucket : These represents the number of times the observed value (for putDirectory + puFile) was less than or equal
+    to the bucket's value. There are total of 14 buckets with values, in seconds, as :
+    { 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0 }
+    * _sum : This represent the sum of observed values, in seconds,
+    * _count: This represent the count of the number of observations.
