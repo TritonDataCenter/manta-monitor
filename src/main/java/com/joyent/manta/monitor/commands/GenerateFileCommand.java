@@ -9,7 +9,6 @@ package com.joyent.manta.monitor.commands;
 
 import com.joyent.manta.monitor.MantaOperationContext;
 import com.joyent.manta.monitor.RandomAlphabeticInputStream;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -37,10 +36,6 @@ public class GenerateFileCommand implements MantaOperationCommand {
         final Path temp = Files.createTempFile(String.format("mput-%s-",
                 LocalDate.now().format(ISO_LOCAL_DATE)),
                 ".txt");
-
-        /* Register the file for deletion upon the JVM's exit, so that
-         * we don't have junk cluttering up our filesystem. */
-        FileUtils.forceDeleteOnExit(temp.toFile());
 
         final MessageDigest checksum = MessageDigest.getInstance("SHA256");
 

@@ -62,6 +62,8 @@ public class PutFileCommand implements MantaOperationCommand {
         } catch (RuntimeException e) {
             throw new MantaOperationException(e).setPath(filePath);
         } finally {
+            /* Delete the temp file so that we don't have junk cluttering
+             * up our filesystem. */
             Files.deleteIfExists(context.getTestFile());
             LOG.info("Put operation took: {} milliseconds", stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
