@@ -10,10 +10,12 @@ package com.joyent.manta.monitor;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
+import com.joyent.manta.client.MantaClient;
 import io.logz.guice.jersey.GuiceJerseyResourceConfig;
 import io.logz.guice.jersey.JettyServerCreator;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
 import io.logz.guice.jersey.configuration.ServerConnectorConfiguration;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.ServerConnector;
@@ -30,6 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.DispatcherType;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -45,14 +51,18 @@ public class MantaMonitorJerseyServer {
     private final JerseyConfiguration jerseyConfiguration;
     private final Supplier<Injector> injectorSupplier;
     private final Server server;
+    private final MantaClient client;
 
     MantaMonitorJerseyServer(final JerseyConfiguration jerseyConfiguration,
                              final Supplier<Injector> injectorSupplier,
-                             final JettyServerCreator jettyServerCreator) {
+                             final JettyServerCreator jettyServerCreator,
+                             final MantaClient client) {
         this.jerseyConfiguration = jerseyConfiguration;
         this.injectorSupplier = injectorSupplier;
         this.server = jettyServerCreator.create();
+        this.client = client;
         this.configureServer();
+
     }
 
     public void start() throws Exception {
@@ -118,7 +128,76 @@ public class MantaMonitorJerseyServer {
         }
     }
 
-    /*
+    private URI getURIFromString(final String uriString) {
+        URI configUri = null;
+
+        try {
+            configUri = URI.create(uriString);
+
+            if (configUri.getScheme() == null) {
+                File file = new File(uriString);
+
+                if (!file.exists()) {
+                    LOGGER.error("File does not exist: {}", uriString);
+                    System.exit(1);
+                }
+
+                try {
+                    configUri = file.getCanonicalFile().toURI();
+                } catch (IOException ioe) {
+                    LOGGER.error("Unable to convert file to URI", ioe);
+                    System.exit(1);
+                }
+            }
+
+        } catch (IllegalArgumentException | NullPointerException e) {
+            String msg = String.format("Invalid URI for configuration file: %s",
+                    uriString);
+            LOGGER.error(msg, e);
+            System.exit(1);
+        }
+
+        return configUri;
+    }
+
+    private InputStream readFileFromURI(final URI uriFile) throws IOException {
+        if ("manta".equals(uriFile.getScheme())) {
+            if (client == null) {
+                String msg = "Can't load file from Manta when MantaClient is null";
+                MantaMonitorJerseyServerException exception = new MantaMonitorJerseyServerException(msg);
+                exception.setContextValue("uri", uriFile.toASCIIString());
+                throw exception;
+            }
+            return client.getAsInputStream(uriFile.getPath());
+        }
+
+        try {
+            return uriFile.toURL().openStream();
+        } catch (IllegalArgumentException e) {
+            String msg = "Can't open file as stream";
+            MantaMonitorJerseyServerException exception = new MantaMonitorJerseyServerException(msg);
+            exception.setContextValue("uri", uriFile.toASCIIString());
+            throw exception;
+        }
+    }
+
+    private void writeInputStreamToTarget(final URI srcURI,
+                                          final File targetFile) {
+        try {
+            InputStream in = readFileFromURI(srcURI);
+            FileUtils.copyInputStreamToFile(in, targetFile);
+        } catch (IOException ie) {
+            String msg = "Failed to write stream to target file. "
+                    + "Check if the file exists on the URI path";
+            MantaMonitorJerseyServerException exception = new MantaMonitorJerseyServerException(msg);
+            exception.setContextValue("uriString", srcURI.toASCIIString());
+            exception.setContextValue("targetFilePath", targetFile.getPath());
+            throw exception;
+        }
+
+    }
+
+    /**
      * This method configures the embedded jetty server to run on either the http
      * mode on JETTY_SERVER_PORT or the https mode on JETTY_SERVER_SECURE_PORT.
      * If the ENABLE_TLS flag is set to true during runtime, the server will
@@ -141,10 +220,35 @@ public class MantaMonitorJerseyServer {
             httpsConfig.addCustomizer(src);
 
             SslContextFactory sslContextFactory = new SslContextFactory();
-            sslContextFactory.setKeyStorePath(System.getenv("KEYSTORE_PATH"));
+
+            String userHomePath = System.getProperty("user.home");
+
+            URI keystoreURI = getURIFromString(System.getenv("KEYSTORE_PATH"));
+
+            if ("manta".equals(keystoreURI.getScheme())) {
+                // Make the keystore file available for the sslContextFactory, by
+                // reading the remote file and writing it to a file on the host file system.
+                File keystoreTargetFile = new File(userHomePath + "/keystore");
+                writeInputStreamToTarget(keystoreURI, keystoreTargetFile);
+                sslContextFactory.setKeyStorePath(keystoreTargetFile.getPath());
+            } else {
+                // Read the keystore directly from the local file system
+                sslContextFactory.setKeyStorePath(System.getenv("KEYSTORE_PATH"));
+            }
+
+            URI trustStoreURI = getURIFromString(System.getenv("TRUSTSTORE_PATH"));
+            if ("manta".equals(trustStoreURI.getScheme())) {
+                // Make the truststore file available for the sslContextFactory, by
+                // reading the remote file and writing it to a file on the host file system.
+                File trustStoreTargetFile = new File(userHomePath + "/truststore");
+                writeInputStreamToTarget(trustStoreURI, trustStoreTargetFile);
+                sslContextFactory.setTrustStorePath(trustStoreTargetFile.getPath());
+            } else {
+                // Read the truststore directly from the local file system
+                sslContextFactory.setTrustStorePath(System.getenv("TRUSTSTORE_PATH"));
+            }
             sslContextFactory.setKeyStorePassword(System.getenv("KEYSTORE_PASS"));
             sslContextFactory.setKeyManagerPassword(System.getenv("KEYSTORE_PASS"));
-            sslContextFactory.setTrustStorePath(System.getenv("TRUSTSTORE_PATH"));
             sslContextFactory.setTrustStorePassword(System.getenv("TRUSTSTORE_PASS"));
             sslContextFactory.setNeedClientAuth(true);
 

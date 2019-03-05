@@ -63,7 +63,9 @@ public class Application {
         final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
         final Injector injector = Guice.createInjector(module);
         final Configuration configuration = injector.getInstance(Configuration.class);
-        final JettyServerBuilderModule jettyServerBuilderModule = new JettyServerBuilderModule(jettyServerPort);
+        final MantaClient client = injector.getInstance(MantaClient.class);
+        final JettyServerBuilderModule jettyServerBuilderModule = new JettyServerBuilderModule(jettyServerPort,
+                client);
         final Injector jettyServerBuilderInjector = injector.createChildInjector(jettyServerBuilderModule, mantaMonitorServletModule);
         LOG.info("Starting Manta Monitor");
         final MantaMonitorJerseyServer server = jettyServerBuilderInjector.getInstance(MantaMonitorJerseyServer.class);
@@ -80,7 +82,7 @@ public class Application {
             System.exit(1);
         }
 
-        final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
+        final Set<ChainRunner> runningChains = startAllChains(configuration, injector, client);
 
         while (!runningChains.isEmpty()) {
             runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
@@ -102,13 +104,14 @@ public class Application {
      *
      * @param configuration configuration to load
      * @param injector Guice DI object
+     * @param client MantaClient object
      * @return a set of all chain runners started
      */
     private static Set<ChainRunner> startAllChains(final Configuration configuration,
-                                                   final Injector injector) {
+                                                   final Injector injector,
+                                                   final MantaClient client) {
         final Set<ChainRunner> runningChains =
                 new LinkedHashSet<>(configuration.getTestRunners().size());
-        final MantaClient client = injector.getInstance(MantaClient.class);
         /**
          * A Shared Map for storing the Histogram object for each chain.
          * This map is shared across all the running chains with key as the name
