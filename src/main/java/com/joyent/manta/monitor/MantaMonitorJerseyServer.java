@@ -151,7 +151,7 @@ public class MantaMonitorJerseyServer {
             }
 
         } catch (IllegalArgumentException | NullPointerException e) {
-            String msg = String.format("Invalid URI for configuration file: %s",
+            String msg = String.format("Invalid URI for store path: %s",
                     uriString);
             LOGGER.error(msg, e);
             System.exit(1);
