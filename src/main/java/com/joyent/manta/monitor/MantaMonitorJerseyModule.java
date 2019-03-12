@@ -8,14 +8,12 @@
 package com.joyent.manta.monitor;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.servlet.ServletModule;
-import com.joyent.manta.client.MantaClient;
+import com.google.inject.Singleton;
+import com.google.inject.servlet.GuiceServletContextListener;
 import io.logz.guice.jersey.JettyServerCreator;
-import io.logz.guice.jersey.configuration.JerseyConfiguration;
-import java.util.Objects;
 import org.eclipse.jetty.server.Server;
+
+import java.util.Objects;
 
 /**
  * This implementation of {@link AbstractModule} provides dependency injection
@@ -23,28 +21,20 @@ import org.eclipse.jetty.server.Server;
  */
 
 public class MantaMonitorJerseyModule extends AbstractModule {
-    private final JerseyConfiguration jerseyConfiguration;
     private final JettyServerCreator jettyServerCreator;
-    private final MantaClient client;
 
-    public MantaMonitorJerseyModule(final JerseyConfiguration jerseyConfiguration,
-                                    final MantaClient client) {
-        this(jerseyConfiguration, Server::new, client);
+    public MantaMonitorJerseyModule() {
+        this(Server::new);
     }
 
-    public MantaMonitorJerseyModule(final JerseyConfiguration jerseyConfiguration,
-                                    final JettyServerCreator jettyServerCreator,
-                                    final MantaClient client) {
-        this.jerseyConfiguration = Objects.requireNonNull(jerseyConfiguration);
+    public MantaMonitorJerseyModule(final JettyServerCreator jettyServerCreator) {
         this.jettyServerCreator = Objects.requireNonNull(jettyServerCreator);
-        this.client = Objects.requireNonNull(client);
     }
 
     protected void configure() {
-        Provider<Injector> injectorProvider = this.getProvider(Injector.class);
-        this.install(new ServletModule());
-        this.bind(MantaMonitorJerseyServer.class).toInstance(new MantaMonitorJerseyServer(this.jerseyConfiguration,
-                injectorProvider::get, this.jettyServerCreator, this.client));
-        this.bind(JerseyConfiguration.class).toInstance(this.jerseyConfiguration);
+        this.bind(JettyServerCreator.class).toInstance(this.jettyServerCreator);
+        this.bind(MantaMonitorJerseyServer.class).asEagerSingleton();
+        this.bind(GuiceServletContextListener.class).to(JerseyGuiceServletContextListener.class)
+                .in(Singleton.class);
     }
 }

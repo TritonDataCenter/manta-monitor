@@ -9,9 +9,7 @@ package com.joyent.manta.monitor;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import com.joyent.manta.client.MantaClient;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Class that provides {@link MantaMonitorModule} dependencies to the
@@ -19,12 +17,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class JettyServerBuilderModule implements Module {
     private final int jettyServerPort;
-    private final MantaClient client;
 
-    public JettyServerBuilderModule(final int jettyServerPort,
-                                    @Nullable final MantaClient client) {
+    public JettyServerBuilderModule(final int jettyServerPort) {
         this.jettyServerPort = jettyServerPort;
-        this.client = client;
     }
 
     @Override
@@ -33,7 +28,8 @@ public class JettyServerBuilderModule implements Module {
                 .addPort(jettyServerPort)
                 .build();
 
-        MantaMonitorJerseyModule mantaMonitorJerseyModule = new MantaMonitorJerseyModule(jerseyConfig, client);
+        MantaMonitorJerseyModule mantaMonitorJerseyModule = new MantaMonitorJerseyModule();
+        binder.bind(JerseyConfiguration.class).toInstance(jerseyConfig);
         binder.install(mantaMonitorJerseyModule);
     }
 }

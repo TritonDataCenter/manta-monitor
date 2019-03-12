@@ -61,14 +61,11 @@ public class Application {
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
         final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
-        final Injector injector = Guice.createInjector(module);
+        final JettyServerBuilderModule jettyServerBuilderModule = new JettyServerBuilderModule(jettyServerPort);
+        final Injector injector = Guice.createInjector(module, mantaMonitorServletModule, jettyServerBuilderModule);
         final Configuration configuration = injector.getInstance(Configuration.class);
-        final MantaClient client = injector.getInstance(MantaClient.class);
-        final JettyServerBuilderModule jettyServerBuilderModule = new JettyServerBuilderModule(jettyServerPort,
-                client);
-        final Injector jettyServerBuilderInjector = injector.createChildInjector(jettyServerBuilderModule, mantaMonitorServletModule);
         LOG.info("Starting Manta Monitor");
-        final MantaMonitorJerseyServer server = jettyServerBuilderInjector.getInstance(MantaMonitorJerseyServer.class);
+        final MantaMonitorJerseyServer server = injector.getInstance(MantaMonitorJerseyServer.class);
 
         // DefaultExports registers collectors, built into the prometheus java
         // client, for garbage collection, memory pools, JMX, classloading, and
@@ -82,11 +79,13 @@ public class Application {
             System.exit(1);
         }
 
-        final Set<ChainRunner> runningChains = startAllChains(configuration, injector, client);
+        try (MantaClient client = injector.getInstance(MantaClient.class)) {
+            final Set<ChainRunner> runningChains = startAllChains(configuration, injector, client);
 
-        while (!runningChains.isEmpty()) {
-            runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
-            Thread.sleep(2000);
+            while (!runningChains.isEmpty()) {
+                runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
+                Thread.sleep(2000);
+            }
         }
 
         LOG.info("Stopping Manta Monitor Web");
