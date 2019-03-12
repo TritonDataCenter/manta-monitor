@@ -7,7 +7,6 @@
  */
 package com.joyent.manta.monitor;
 
-import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.joyent.manta.client.MantaClient;
@@ -18,11 +17,11 @@ import io.logz.guice.jersey.configuration.ServerConnectorConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -31,6 +30,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.servlet.DispatcherType;
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +39,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Customized version of the {@link io.logz.guice.jersey.JerseyServer}.
@@ -49,20 +48,20 @@ import java.util.function.Supplier;
 public class MantaMonitorJerseyServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MantaMonitorJerseyServer.class);
     private final JerseyConfiguration jerseyConfiguration;
-    private final Supplier<Injector> injectorSupplier;
+    private final GuiceServletContextListener contextListener;
     private final Server server;
     private final MantaClient client;
 
+    @Inject
     MantaMonitorJerseyServer(final JerseyConfiguration jerseyConfiguration,
-                             final Supplier<Injector> injectorSupplier,
                              final JettyServerCreator jettyServerCreator,
+                             final GuiceServletContextListener contextListener,
                              final MantaClient client) {
         this.jerseyConfiguration = jerseyConfiguration;
-        this.injectorSupplier = injectorSupplier;
         this.server = jettyServerCreator.create();
+        this.contextListener = contextListener;
         this.client = client;
         this.configureServer();
-
     }
 
     public void start() throws Exception {
@@ -278,11 +277,7 @@ public class MantaMonitorJerseyServer {
         webAppContext.addServlet(holder, "/*");
         webAppContext.setResourceBase("/");
         webAppContext.setContextPath(this.jerseyConfiguration.getContextPath());
-        webAppContext.addEventListener(new GuiceServletContextListener() {
-            protected Injector getInjector() {
-                return MantaMonitorJerseyServer.this.injectorSupplier.get();
-            }
-        });
+        webAppContext.addEventListener(this.contextListener);
         this.server.setHandler(webAppContext);
     }
 }
