@@ -12,6 +12,9 @@ import com.google.inject.servlet.GuiceServletContextListener;
 
 import javax.inject.Inject;
 
+/**
+ * Class that provides event listener to the {@link MantaMonitorJerseyServer}.
+ */
 public class JerseyGuiceServletContextListener extends GuiceServletContextListener {
     private final Injector injector;
 
