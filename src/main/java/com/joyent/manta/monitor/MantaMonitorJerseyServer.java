@@ -47,7 +47,7 @@ import java.util.List;
 
 public class MantaMonitorJerseyServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MantaMonitorJerseyServer.class);
-    private static final String MANTA_SUBDIR = ".manta-monitor";
+    private static final String MANTA_MONITOR_SUBDIR = ".manta-monitor";
     private final JerseyConfiguration jerseyConfiguration;
     private final GuiceServletContextListener contextListener;
     private final Server server;
@@ -220,16 +220,17 @@ public class MantaMonitorJerseyServer {
             httpsConfig.addCustomizer(src);
 
             SslContextFactory sslContextFactory = new SslContextFactory();
-
-            String userHomePath = System.getProperty("user.home");
+            // Write the keystore and the truststore files in the user's current
+            // working directory. For eg: /opt/manta-monitor/.manta-monitor/keystore
+            String userDirPath = System.getProperty("user.dir");
 
             URI keystoreURI = getURIFromString(System.getenv("KEYSTORE_PATH"));
 
             if ("manta".equals(keystoreURI.getScheme())) {
                 // Make the keystore file available for the sslContextFactory, by
                 // reading the remote file and writing it to a file on the host file system.
-                File keystoreTargetFile = new File(userHomePath + File.separator
-                        + MANTA_SUBDIR + File.separator + "keystore");
+                File keystoreTargetFile = new File(userDirPath + File.separator
+                        + MANTA_MONITOR_SUBDIR + File.separator + "keystore");
                 writeInputStreamToTarget(keystoreURI, keystoreTargetFile);
                 sslContextFactory.setKeyStorePath(keystoreTargetFile.getPath());
             } else {
@@ -241,8 +242,8 @@ public class MantaMonitorJerseyServer {
             if ("manta".equals(trustStoreURI.getScheme())) {
                 // Make the truststore file available for the sslContextFactory, by
                 // reading the remote file and writing it to a file on the host file system.
-                File trustStoreTargetFile = new File(userHomePath + File.separator
-                        + MANTA_SUBDIR + File.separator + "truststore");
+                File trustStoreTargetFile = new File(userDirPath + File.separator
+                        + MANTA_MONITOR_SUBDIR + File.separator + "truststore");
                 writeInputStreamToTarget(trustStoreURI, trustStoreTargetFile);
                 sslContextFactory.setTrustStorePath(trustStoreTargetFile.getPath());
             } else {
