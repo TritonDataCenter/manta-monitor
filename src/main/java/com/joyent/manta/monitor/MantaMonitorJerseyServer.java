@@ -47,6 +47,7 @@ import java.util.List;
 
 public class MantaMonitorJerseyServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MantaMonitorJerseyServer.class);
+    private static final String MANTA_SUBDIR = ".manta-monitor";
     private final JerseyConfiguration jerseyConfiguration;
     private final GuiceServletContextListener contextListener;
     private final Server server;
@@ -227,7 +228,8 @@ public class MantaMonitorJerseyServer {
             if ("manta".equals(keystoreURI.getScheme())) {
                 // Make the keystore file available for the sslContextFactory, by
                 // reading the remote file and writing it to a file on the host file system.
-                File keystoreTargetFile = new File(userHomePath + "/keystore");
+                File keystoreTargetFile = new File(userHomePath + File.separator
+                        + MANTA_SUBDIR + File.separator + "keystore");
                 writeInputStreamToTarget(keystoreURI, keystoreTargetFile);
                 sslContextFactory.setKeyStorePath(keystoreTargetFile.getPath());
             } else {
@@ -239,7 +241,8 @@ public class MantaMonitorJerseyServer {
             if ("manta".equals(trustStoreURI.getScheme())) {
                 // Make the truststore file available for the sslContextFactory, by
                 // reading the remote file and writing it to a file on the host file system.
-                File trustStoreTargetFile = new File(userHomePath + "/truststore");
+                File trustStoreTargetFile = new File(userHomePath + File.separator
+                        + MANTA_SUBDIR + File.separator + "truststore");
                 writeInputStreamToTarget(trustStoreURI, trustStoreTargetFile);
                 sslContextFactory.setTrustStorePath(trustStoreTargetFile.getPath());
             } else {
