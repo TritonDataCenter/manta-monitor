@@ -47,7 +47,7 @@ import java.util.List;
 
 public class MantaMonitorJerseyServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MantaMonitorJerseyServer.class);
-    private static final String MANTA_MONITOR_SUBDIR = ".manta-monitor";
+    private static final String MANTA_MONITOR_SUBDIR = "tls";
     private final JerseyConfiguration jerseyConfiguration;
     private final GuiceServletContextListener contextListener;
     private final Server server;
