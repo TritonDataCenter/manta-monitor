@@ -187,8 +187,11 @@ Additional notes:
         insecure_skip_verify: true
   ```
 ### Deployment
-To deploy the application in a production environment, refer to the
-[Manta Monitor Deployment document](doc/manta-monitor-deployment.md).
+To deploy the application in a production environment, refer to the document
+[Manta Monitor Deployment](doc/manta-monitor-deployment.md).
+
+To deploy the application using terraform, in a production environment, refer to the document
+[Manta Monitor Deployment using Terraform](doc/deploy-with-terraform.md).
  
 ### Build
 
