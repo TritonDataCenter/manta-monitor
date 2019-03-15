@@ -64,7 +64,6 @@ public class ThrowableProcessor {
     }
 
     public ProcessedResults process(final Throwable inputThrowable) {
-        final Throwable throwableAndCauses = unwrapMantaOperationException(inputThrowable);
         final List<Throwable> throwables = ExceptionUtils.getThrowableList(inputThrowable);
         final Map<String, String> aggregatedContext = aggregateAllExceptionContext(throwables);
         final String path;
@@ -90,22 +89,7 @@ public class ThrowableProcessor {
         final MantaHttpHeaders mantaHeaders = findFirstMantaHeaderObject(throwables);
         final Request request = requestFactory.build(path, mantaHeaders, inputThrowable);
         final Throwable rootCause = rootCause(throwables);
-        return new ProcessedResults(throwableAndCauses, rootCause, request, throwables);
-    }
-
-    @Nullable
-    private static Throwable unwrapMantaOperationException(final Throwable throwable) {
-        if (throwable == null) {
-            return null;
-        }
-
-        final Throwable cause = throwable.getCause();
-
-        if (cause == null) {
-            return throwable;
-        }
-
-        return cause;
+        return new ProcessedResults(inputThrowable, rootCause, request, throwables);
     }
 
     private static Map<String, String> aggregateAllExceptionContext(final List<Throwable> throwables) {
