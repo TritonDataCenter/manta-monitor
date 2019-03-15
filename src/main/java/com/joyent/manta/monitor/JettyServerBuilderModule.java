@@ -12,7 +12,8 @@ import com.google.inject.Module;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
 
 /**
- * Class that provides {@link MantaMonitorModule} dependencies to the {@link MantaMonitorServletModule}.
+ * Class that provides {@link MantaMonitorModule} dependencies to the
+ * {@link MantaMonitorServletModule}.
  */
 public class JettyServerBuilderModule implements Module {
     private final int jettyServerPort;
@@ -27,7 +28,8 @@ public class JettyServerBuilderModule implements Module {
                 .addPort(jettyServerPort)
                 .build();
 
-        MantaMonitorJerseyModule mantaMonitorJerseyModule = new MantaMonitorJerseyModule(jerseyConfig);
+        MantaMonitorJerseyModule mantaMonitorJerseyModule = new MantaMonitorJerseyModule();
+        binder.bind(JerseyConfiguration.class).toInstance(jerseyConfig);
         binder.install(mantaMonitorJerseyModule);
     }
 }

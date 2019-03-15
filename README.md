@@ -136,10 +136,38 @@ docker run -p 8443:8443 -d \
     -e JETTY_SERVER_SECURE_PORT=8443 \
     joyent/manta-monitor
 ```
-NOTE : For detailed information about about generating and using keystore 
-refer [here](https://www.eclipse.org/jetty/documentation/9.4.x/configuring-ssl.html#configuring-jetty-for-ssl)
+NOTES : 
+* For detailed information about about generating and using keystore 
+  refer [here](https://www.eclipse.org/jetty/documentation/9.4.x/configuring-ssl.html#configuring-jetty-for-ssl)
+* As seen above, the *docker run* command requires mounting the keystore and truststore files to the docker container. 
+  However, in case if these files are not accessible from the local file system, you can provide a manta URL, as shown below,
+  to make these files accessible during run time. Make sure to put the files in the MANTA_USER's manta store before running the
+  below command.
+  
+```
+docker run -p 8443:8443 -d \
+    --name manta-monitor-1
+    --memory 1G \
+    --label triton.cns.services=manta-monitor \
+    -e JAVA_ENV=production \
+    -e HONEYBADGER_API_KEY=XXXXXXXX \
+    -e CONFIG_FILE=manta:///user/stor/manta-monitor-config.json \
+    -e MANTA_USER=user \
+    -e "MANTA_PUBLIC_KEY=$(cat $HOME/.ssh/id_rsa.pub)" \
+    -e "MANTA_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa | base64 -w0)" \
+    -e "MANTA_URL=https://us-east.manta.joyent.com" \
+    -e MANTA_TIMEOUT=4000 \
+    -e MANTA_METRIC_REPORTER_MODE=JMX \
+    -e MANTA_HTTP_RETRIES=3 \
+    -e ENABLE_TLS=true \
+    -e KEYSTORE_PATH=manta:///user/stor/keystore \
+    -e KEYSTORE_PASS=//XXXXXXXX \
+    -e TRUSTSTORE_PATH=manta:///user/stor/truststore \
+    -e TRUSTSTORE_PASS=XXXXXXXX \
+    -e JETTY_SERVER_SECURE_PORT=8443 \
+    joyent/manta-monitor
+```  
 
-Additional notes: 
 * The parameter MANTA_HTTP_RETRIES, above defines the number of times to retry failed HTTP requests. 
   Setting this value to zero disables retries completely.
   Please refer [here](https://github.com/joyent/java-manta/blob/master/USAGE.md#parameters) 

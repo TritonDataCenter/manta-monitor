@@ -61,12 +61,11 @@ public class Application {
         final MantaMonitorModule module = new MantaMonitorModule(UNCAUGHT_EXCEPTION_HANDLER,
                 UNCAUGHT_EXCEPTION_HANDLER.getReporter(), configUri);
         final MantaMonitorServletModule mantaMonitorServletModule = new MantaMonitorServletModule();
-        final Injector injector = Guice.createInjector(module);
-        final Configuration configuration = injector.getInstance(Configuration.class);
         final JettyServerBuilderModule jettyServerBuilderModule = new JettyServerBuilderModule(jettyServerPort);
-        final Injector jettyServerBuilderInjector = injector.createChildInjector(jettyServerBuilderModule, mantaMonitorServletModule);
+        final Injector injector = Guice.createInjector(module, mantaMonitorServletModule, jettyServerBuilderModule);
+        final Configuration configuration = injector.getInstance(Configuration.class);
         LOG.info("Starting Manta Monitor");
-        final MantaMonitorJerseyServer server = jettyServerBuilderInjector.getInstance(MantaMonitorJerseyServer.class);
+        final MantaMonitorJerseyServer server = injector.getInstance(MantaMonitorJerseyServer.class);
 
         // DefaultExports registers collectors, built into the prometheus java
         // client, for garbage collection, memory pools, JMX, classloading, and
@@ -80,11 +79,13 @@ public class Application {
             System.exit(1);
         }
 
-        final Set<ChainRunner> runningChains = startAllChains(configuration, injector);
+        try (MantaClient client = injector.getInstance(MantaClient.class)) {
+            final Set<ChainRunner> runningChains = startAllChains(configuration, injector, client);
 
-        while (!runningChains.isEmpty()) {
-            runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
-            Thread.sleep(2000);
+            while (!runningChains.isEmpty()) {
+                runningChains.removeIf(chainRunner -> !chainRunner.isRunning());
+                Thread.sleep(2000);
+            }
         }
 
         LOG.info("Stopping Manta Monitor Web");
@@ -102,13 +103,14 @@ public class Application {
      *
      * @param configuration configuration to load
      * @param injector Guice DI object
+     * @param client MantaClient object
      * @return a set of all chain runners started
      */
     private static Set<ChainRunner> startAllChains(final Configuration configuration,
-                                                   final Injector injector) {
+                                                   final Injector injector,
+                                                   final MantaClient client) {
         final Set<ChainRunner> runningChains =
                 new LinkedHashSet<>(configuration.getTestRunners().size());
-        final MantaClient client = injector.getInstance(MantaClient.class);
         /**
          * A Shared Map for storing the Histogram object for each chain.
          * This map is shared across all the running chains with key as the name
