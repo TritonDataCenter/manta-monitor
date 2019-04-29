@@ -11,7 +11,7 @@ sudo docker pull joyent/manta-monitor
 
 if [ "${enable_tls}" == "false" ]; then
 sudo docker run -d -p ${jetty_server_port}:${jetty_server_port ~}
- --name ${container_name ~}
+ --log-driver json-file --log-opt max-size=10m --log-opt max-file=3 --name ${container_name ~}
  --memory ${container_memory ~}
  -e JAVA_ENV=${java_env ~}
  -e HONEYBADGER_API_KEY=${honeybadger_api_key ~}
@@ -25,8 +25,9 @@ sudo docker run -d -p ${jetty_server_port}:${jetty_server_port ~}
  joyent/manta-monitor
 else
 sudo docker run -d -p ${jetty_server_secure_port}:${jetty_server_secure_port ~}
- --name ${container_name ~}
+ --log-driver json-file --log-opt max-size=10m --log-opt max-file=3 --name ${container_name ~}
  --memory ${container_memory ~}
+ -e JAVA_ENV=${java_env ~}
  -e HONEYBADGER_API_KEY=${honeybadger_api_key ~}
  -e CONFIG_FILE=${config_file ~}
  -e MANTA_USER=${manta_user ~}
