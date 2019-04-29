@@ -101,3 +101,10 @@ dependency-reduced-pom.xml
 
 ### macOS ###
 .DS_Store
+
+# Files potentailly created by terraform
+terraform/.terraform*
+*/terraform.tfstate*
+terraform/*.plan
+terraform/*.sh
+terraform/*.tfvars
