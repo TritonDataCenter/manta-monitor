@@ -9,7 +9,9 @@ package com.joyent.manta.monitor.commands;
 
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.exception.MantaClientHttpResponseException;
+import com.joyent.manta.exception.MantaErrorCode;
 import com.joyent.manta.monitor.MantaOperationContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -26,6 +28,10 @@ public class CleanupCommand implements MantaOperationCommand {
 
         deleteObject(client, context.getFilePath());
 
+        if ("buckets".equals(context.getTestType())) {
+            deleteBucket(client, context.getBucketPath());
+        }
+
         context.getStopWatch().stop();
         return PROCESSING_COMPLETE;
     }
@@ -40,11 +46,27 @@ public class CleanupCommand implements MantaOperationCommand {
             switch (e.getServerCode()) {
                 case RESOURCE_NOT_FOUND_ERROR:
                     // do nothing because the object is already gone
+                case OBJECT_NOT_FOUND_ERROR:
+                    // do nothing because the object is already removed
+                case BUCKET_NOT_EMPTY_ERROR:
+                    // do nothing because the bucket contains other objects
                 case DIRECTORY_NOT_EMPTY_ERROR:
                     // do nothing because the directory contains other objects
                     break;
                 default:
                     throw e;
+            }
+        }
+    }
+
+    private static void deleteBucket(@NotNull final MantaClient client,
+                                     @NotNull final String bucketPath) throws IOException {
+        try {
+            client.deleteBucket(bucketPath);
+        } catch (MantaClientHttpResponseException e) {
+            if (!e.getServerCode().equals(MantaErrorCode.BUCKET_NOT_FOUND_ERROR)
+            || !e.getServerCode().equals(MantaErrorCode.RESOURCE_NOT_FOUND_ERROR)) {
+                throw e;
             }
         }
     }

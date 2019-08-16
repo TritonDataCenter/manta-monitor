@@ -100,10 +100,21 @@ public class PutFileCommand implements MantaOperationCommand {
     }
 
     protected static String generateFilePath(final  MantaOperationContext context) {
-        final byte[] checksum = context.getTestFileChecksum();
-        final String dir = context.getFilePathGenerationFunction().apply(checksum);
+        String filePath;
+        if ("buckets".equals(context.getTestType())) {
 
-        return dir + context.getTestFileChecksumAsString() + ".txt";
+            filePath = String.format("%s%sobjects%s%s.txt",
+                    context.getBucketPath(), MantaClient.SEPARATOR,
+                    MantaClient.SEPARATOR, context.getTestFileChecksumAsString());
+        } else {
+            final byte[] checksum = context.getTestFileChecksum();
+            final String dir = context.getFilePathGenerationFunction().apply(checksum);
+            filePath = String.format("%s%s.txt", dir, context.getTestFileChecksumAsString());
+        }
+
+        return filePath;
+
+        //return dir + context.getTestFileChecksumAsString() + ".txt";
     }
 
     protected static Integer parseResponseTime(final MantaHttpHeaders headers) {
