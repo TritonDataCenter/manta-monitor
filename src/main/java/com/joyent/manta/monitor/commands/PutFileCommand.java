@@ -102,7 +102,6 @@ public class PutFileCommand implements MantaOperationCommand {
     protected static String generateFilePath(final  MantaOperationContext context) {
         String filePath;
         if ("buckets".equals(context.getTestType())) {
-
             filePath = String.format("%s%sobjects%s%s.txt",
                     context.getBucketPath(), MantaClient.SEPARATOR,
                     MantaClient.SEPARATOR, context.getTestFileChecksumAsString());
@@ -113,8 +112,6 @@ public class PutFileCommand implements MantaOperationCommand {
         }
 
         return filePath;
-
-        //return dir + context.getTestFileChecksumAsString() + ".txt";
     }
 
     protected static Integer parseResponseTime(final MantaHttpHeaders headers) {
