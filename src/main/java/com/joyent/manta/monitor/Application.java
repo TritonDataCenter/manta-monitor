@@ -164,6 +164,8 @@ public class Application {
             } catch (ClassNotFoundException e) {
                 LOG.error("Unable to load class: {}", runner.getChainClassName());
             } catch (IOException e) {
+                // Indicates that manta end point is not compatible to support bucket
+                // operations and hence we cannot continue further.
                 if (e instanceof MantaClientHttpResponseException) {
                     if (((MantaClientHttpResponseException)e)
                             .getServerCode()
