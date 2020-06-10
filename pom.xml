@@ -55,8 +55,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         <!-- Dependency versions -->
         <dependency.slfj.version>1.7.28</dependency.slfj.version>
-        <dependency.checkstyle.version>8.15</dependency.checkstyle.version>
-        <dependency.java-manta-client-unshaded.version>3.4.0</dependency.java-manta-client-unshaded.version>
+        <dependency.checkstyle.version>8.31</dependency.checkstyle.version>
+        <dependency.java-manta-client-unshaded.version>3.5.0</dependency.java-manta-client-unshaded.version>
         <dependency.honeybadger-java.version>2.0.2</dependency.honeybadger-java.version>
         <dependency.guice.version>4.2.2</dependency.guice.version>
         <dependency.commons-chain.version>1.2</dependency.commons-chain.version>
@@ -75,7 +75,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
         <maven-extra-enforcer-rules.version>1.2</maven-extra-enforcer-rules.version>
-        <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 
         <!-- Maven plugin dependency versions -->
@@ -238,31 +238,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <compilerId>javac-with-errorprone</compilerId>
                     <forceJavacCompilerUse>true</forceJavacCompilerUse>
-                    <source>${java.min.version}</source>
-                    <target>${java.min.version}</target>
+                    <release>11</release>
                     <showWarnings>true</showWarnings>
                     <compilerArgs>
-                        <arg>-Xlint:all</arg>
-                        <arg>-Xlint:-processing</arg>
-                        <arg>-XepDisableWarningsInGeneratedCode</arg>
+                        <arg>-XDcompilePolicy=simple</arg>
+                        <arg>-Xplugin:ErrorProne</arg>
                     </compilerArgs>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.google.errorprone</groupId>
+                            <artifactId>error_prone_core</artifactId>
+                            <version>${maven-error-prone-core.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.plexus</groupId>
-                        <artifactId>plexus-compiler-javac-errorprone</artifactId>
-                        <version>${maven-plexus-compiler-javac-errorprone.version}</version>
-                    </dependency>
-                    <!-- override plexus-compiler-javac-errorprone's dependency on
-                         Error Prone with the latest version -->
-                    <dependency>
-                        <groupId>com.google.errorprone</groupId>
-                        <artifactId>error_prone_core</artifactId>
-                        <version>${maven-error-prone-core.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -228,7 +228,7 @@ To build and run the application from a local Docker image refer to the
 ### Build
 In order to build this project you need the following:
 
-* [Java 1.8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [Java 11](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Maven 3.1.x](https://maven.apache.org/)
 
 From command line, go to the project source directory

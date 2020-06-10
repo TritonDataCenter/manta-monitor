@@ -54,7 +54,8 @@ public class JMXMetricsCollector {
                 }
             }
             String message = "Requested MBean Object not found";
-            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new InvalidObjectException(message));
+            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message,
+                    new InvalidObjectException(message));
             mBeanServerOperationException.addContextValue("objectName", mBeanObjectName);
             mBeanServerOperationException.addContextValue("attribute", attribute);
             mBeanServerOperationException.addContextValue("mbeanServerDomain", MBEAN_DOMAIN);
@@ -125,8 +126,9 @@ public class JMXMetricsCollector {
     public boolean validateMbeanObject(final String objectName) {
         ObjectName mbeanObject = getObjectNameFromString(objectName);
         if (mbeanObject == null) {
-            String message = "Requested mbean object is not registered with the Platform MBean Server";
-            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message, new ValidationException(message));
+            String message = "Requested Mbean object not registered with Platform MBean Server";
+            MBeanServerOperationException mBeanServerOperationException = new MBeanServerOperationException(message,
+                    new ValidationException(message));
             mBeanServerOperationException.addContextValue("objectName", objectName);
             mBeanServerOperationException.addContextValue("mbeanServerDomain", MBEAN_DOMAIN);
             mBeanServerOperationException.addContextValue("mbeanObjectKey", MBEAN_OBJECT_KEY);
