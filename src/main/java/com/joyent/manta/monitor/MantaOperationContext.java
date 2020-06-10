@@ -35,7 +35,6 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public static final String FILE_PATH_GEN_FUNC_KEY = "filePathGenerationFunction";
     public static final String FILE_PATH_KEY = "filePath";
     public static final String FILE_SIZE_KEY = "fileSize";
-    public static final String TEST_BASE_DIR_KEY = "baseDir";
     public static final String TEST_FILE_KEY = "testFile";
     public static final String TEST_FILE_CHECKSUM_KEY = "testFileChecksum";
     public static final String TEST_FILE_CHECKSUM_AS_STRING_KEY = "testFileChecksumString";
@@ -44,6 +43,9 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
     public static final String STOPWATCH_KEY = "stopwatch";
     public static final String REQUEST_PUT_HISTOGRAMS_KEY = "requestPutHistograms";
     public static final String CHAIN_CLASS_NAME_KEY = "chainClassName";
+    public static final String TEST_TYPE_KEY = "testType";
+    public static final String TEST_BASE_DIR_OR_BUCKET_KEY = "baseDirOrBucket";
+    public static final String BUCKET_PATH_KEY = "bucketPath";
 
     public MantaOperationContext() {
         super();
@@ -102,12 +104,21 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
         return this;
     }
 
-    public String getTestBaseDir() {
-        return (String)get(TEST_BASE_DIR_KEY);
+    public String getBucketPath() {
+        return (String)get(BUCKET_PATH_KEY);
     }
 
-    public MantaOperationContext setTestBaseDir(final String baseDir) {
-        put(TEST_BASE_DIR_KEY, baseDir);
+    public MantaOperationContext setBucketPath(final String path) {
+        put(BUCKET_PATH_KEY, requireNonNull(path));
+        return this;
+    }
+
+    public String getTestBaseDirOrBucket() {
+        return (String)get(TEST_BASE_DIR_OR_BUCKET_KEY);
+    }
+
+    public MantaOperationContext setTestBaseDirOrBucket(final String baseDirOrBucket) {
+        put(TEST_BASE_DIR_OR_BUCKET_KEY, baseDirOrBucket);
         return this;
     }
 
@@ -170,6 +181,14 @@ public class MantaOperationContext extends ConcurrentHashMap implements Context 
         return (String)get(CHAIN_CLASS_NAME_KEY);
     }
 
+    public MantaOperationContext setTestType(final String testType) {
+        put(TEST_TYPE_KEY, testType);
+        return this;
+    }
+
+    public String getTestType() {
+        return (String)get(TEST_TYPE_KEY);
+    }
 
     @Nullable
     public Exception getException() {

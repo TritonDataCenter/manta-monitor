@@ -12,6 +12,8 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.joyent.manta.client.MantaClient;
+import com.joyent.manta.exception.MantaClientHttpResponseException;
+import com.joyent.manta.exception.MantaErrorCode;
 import com.joyent.manta.monitor.chains.ChainRunner;
 import com.joyent.manta.monitor.chains.MantaOperationsChain;
 import com.joyent.manta.monitor.config.Configuration;
@@ -111,6 +113,8 @@ public class Application {
                                                    final MantaClient client) {
         final Set<ChainRunner> runningChains =
                 new LinkedHashSet<>(configuration.getTestRunners().size());
+        final String testType = configuration.getTestType();
+
         /**
          * A Shared Map for storing the Histogram object for each chain.
          * This map is shared across all the running chains with key as the name
@@ -132,31 +136,61 @@ public class Application {
                 Class<MantaOperationsChain> chainClass =
                         (Class<MantaOperationsChain>)Class.forName(runner.getChainClassName());
                 MantaOperationsChain chain = injector.getInstance(chainClass);
+                String metricPostFix = chain.getClass().getSimpleName();
+                String putRequestLatencyMetric = String.format("manta_monitor_%s_put_request_latency_", testType);
+
+                if ("buckets".equals(testType)) {
+                    client.options(client.getContext().getMantaBucketsDirectory());
+                    if ("FileMultipartUploadGetDeleteChain".equals(metricPostFix)) {
+                        String msg = "Multipart upload not supported for buckets yet."
+                                + "Check the CONFIG_FILE env variable and re-run the application";
+                        LOG.error(msg);
+                        System.exit(1);
+                    }
+                }
+
                 Histogram requestPutHistogram = Histogram.build()
-                        .name("manta_monitor_put_request_latency_seconds_"
-                                + chain.getClass().getSimpleName())
+                        .name(putRequestLatencyMetric + metricPostFix)
                         .help("Metric that gives a cumulative observation for "
-                                + "latency, in seconds, in creating a directory and "
-                                + "uploading a file")
+                                + "latency, in seconds, in creating a directory/bucket and "
+                                + "putting an object")
                         .create();
                 // Add the histogram here, to register it later below
                 requestPutHistogramsMap.put(chain.getClass().getSimpleName(),
                         requestPutHistogram);
                 ChainRunner chainRunner = new ChainRunner(chain, runner,
-                        client, UNCAUGHT_EXCEPTION_HANDLER, requestPutHistogramsMap);
+                        client, UNCAUGHT_EXCEPTION_HANDLER, requestPutHistogramsMap, testType);
                 runningChains.add(chainRunner);
             } catch (ClassNotFoundException e) {
                 LOG.error("Unable to load class: {}", runner.getChainClassName());
+            } catch (IOException e) {
+                // Indicates that manta end point is not compatible to support bucket
+                // operations and hence we cannot continue further.
+                if (e instanceof MantaClientHttpResponseException) {
+                    if (((MantaClientHttpResponseException)e)
+                            .getServerCode()
+                            .equals(MantaErrorCode.RESOURCE_NOT_FOUND_ERROR)) {
+                        LOG.error("Buckets not supported in current manta");
+                        System.exit(1);
+                    }
+                }
             }
+        }
+
+        // Provide the testType parameter to create the right CustomPrometheusCollector.
+        final CustomPrometheusCollector collector;
+        final CustomPrometheusCollectorFactory collectorFactory =
+                injector.getInstance(CustomPrometheusCollectorFactory.class);
+        if ("buckets".equals(testType)) {
+            collector = collectorFactory.create("buckets");
+        } else {
+            collector = collectorFactory.create("dir");
         }
 
         // Start each chain
         for (ChainRunner runner : runningChains) {
             runner.start();
         }
-
-        final CustomPrometheusCollector collector =
-                injector.getInstance(CustomPrometheusCollector.class);
 
         for (boolean jmxStatsAvailable = false; !jmxStatsAvailable;) {
             try {

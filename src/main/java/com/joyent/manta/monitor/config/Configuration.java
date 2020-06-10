@@ -18,13 +18,20 @@ import java.util.Set;
  */
 public class Configuration {
     private final Set<Runner> testRunners;
+    private final String testType;
 
     @JsonCreator
-    public Configuration(@JsonProperty("testRunners") final Set<Runner> testRunners) {
+    public Configuration(@JsonProperty("testRunners") final Set<Runner> testRunners,
+                         @JsonProperty("testType") final String testType) {
         this.testRunners = ImmutableSet.copyOf(testRunners);
+        this.testType = testType != null ? testType : "dir";
     }
 
     public Set<Runner> getTestRunners() {
         return testRunners;
+    }
+
+    public String getTestType() {
+        return testType;
     }
 }
