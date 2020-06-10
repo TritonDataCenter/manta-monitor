@@ -23,7 +23,7 @@ public class MkdirCommand implements MantaOperationCommand {
         final byte[] checksum = context.getTestFileChecksum();
         final String dir = context.getFilePathGenerationFunction().apply(checksum);
         final MantaClient client = context.getMantaClient();
-         /**
+         /*
           * Using the requestPutHistogramsMap from the context will ensure that
           * the same metric (i.e. manta_monitor_put_request_latency_seconds_FileUploadGetDeleteChain
           * is updated with cumulative values added here and in the
