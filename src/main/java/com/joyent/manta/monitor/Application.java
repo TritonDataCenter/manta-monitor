@@ -114,7 +114,6 @@ public class Application {
         final Set<ChainRunner> runningChains =
                 new LinkedHashSet<>(configuration.getTestRunners().size());
         final String testType = configuration.getTestType();
-        
         /*
          * A shared map for storing the Histogram object for each chain.
          * This map is shared across all the running chains with key as the name
