@@ -11,7 +11,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     <groupId>com.joyent.manta</groupId>
     <artifactId>manta-monitor</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
 
     <developers>
         <developer>
@@ -47,7 +47,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </issueManagement>
 
     <properties>
-        <java.min.version>1.8</java.min.version>
+        <java.min.version>11</java.min.version>
         <maven.min.version>3.0</maven.min.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
