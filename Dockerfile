@@ -14,7 +14,7 @@ WORKDIR /opt/manta-monitor
 
 ENV MANTA_MONITOR_VERSION=1.0.0-SNAPSHOT
 ENV ZULE_JCE_POLICY_CHECKSUM ebe83e1bf25de382ce093cf89e93a944
-ENV JAVA_HOME /usr/lib/jvm/zulu-8-amd64
+ENV JAVA_HOME /usr/lib/jvm/zulu-11-amd64
 ENV INSTANCE_METADATA_PROPS_FILE /opt/manta-monitor/tmp/instance.properties
 ENV MANTA_MONITOR_VERSION 2.0.0
 
@@ -38,7 +38,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         apt-get update && \
         apt-get -qy upgrade && \
         apt-get install --no-install-recommends -qy \
-                        sudo openssh-client curl ca-certificates zulu-8 libjna-java unzip libnss3 dc && \
+                        sudo openssh-client curl ca-certificates zulu-11 libjna-java unzip libnss3 dc && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/* \
                /tmp/* \
@@ -46,10 +46,10 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         echo "JAVA_HOME=$JAVA_HOME" >> /etc/environment
 
 # Install Java Cryptography Extension Kit
-RUN curl --retry 6 -Ls "https://cdn.azul.com/zcek/bin/ZuluJCEPolicies.zip" > /tmp/ZuluJCEPolicies.zip && \
-    echo "${ZULE_JCE_POLICY_CHECKSUM}  /tmp/ZuluJCEPolicies.zip" && \
-    unzip -o -j /tmp/ZuluJCEPolicies.zip -d $JAVA_HOME/jre/lib/security ZuluJCEPolicies/US_export_policy.jar ZuluJCEPolicies/local_policy.jar && \
-    rm /tmp/ZuluJCEPolicies.zip
+# RUN curl --retry 6 -Ls "https://cdn.azul.com/zcek/bin/ZuluJCEPolicies.zip" > /tmp/ZuluJCEPolicies.zip && \
+  #  echo "${ZULE_JCE_POLICY_CHECKSUM}  /tmp/ZuluJCEPolicies.zip" && \
+   # unzip -o -j /tmp/ZuluJCEPolicies.zip -d $JAVA_HOME/lib/security ZuluJCEPolicies/US_export_policy.jar ZuluJCEPolicies/local_policy.jar && \
+    #rm /tmp/ZuluJCEPolicies.zip
 
 # Install CPU spoofing library
 RUN mkdir -p /usr/local/numcpus/ && \

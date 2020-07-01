@@ -11,6 +11,8 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import java.util.Map;
+
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.joyent.manta.client.MantaClient;
 import com.joyent.manta.monitor.config.Configuration;
@@ -65,10 +67,12 @@ public class MantaMonitorModule implements Module {
     @Override
     public void configure(final Binder binder) {
         binder.bind(PlatformMbeanServerProvider.class).asEagerSingleton();
-        binder.bind(JMXMetricsCollector.class).
-                annotatedWith(Names.named("JMXMetricsCollector")).
-                to(JMXMetricsCollector.class).asEagerSingleton();
-        binder.bind(CustomPrometheusCollector.class).asEagerSingleton();
+        binder.bind(JMXMetricsCollector.class)
+                .annotatedWith(Names.named("JMXMetricsCollector"))
+                .to(JMXMetricsCollector.class).asEagerSingleton();
+        binder.install(new FactoryModuleBuilder()
+                .implement(CustomPrometheusCollectorInterface.class, CustomPrometheusCollector.class)
+                .build(CustomPrometheusCollectorFactory.class));
         binder.bind(InstanceMetadata.class).asEagerSingleton();
         binder.bind(io.honeybadger.reporter.config.ConfigContext.class).toInstance(hbConfig);
         binder.bind(NoticeReporter.class).toInstance(noticeReporter);

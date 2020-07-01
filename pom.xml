@@ -56,19 +56,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <!-- Dependency versions -->
         <dependency.slfj.version>1.7.28</dependency.slfj.version>
         <dependency.checkstyle.version>8.31</dependency.checkstyle.version>
-        <dependency.java-manta-client-unshaded.version>3.5.0</dependency.java-manta-client-unshaded.version>
+        <dependency.java-manta-client-unshaded.version>3.5.1-SNAPSHOT</dependency.java-manta-client-unshaded.version>
         <dependency.honeybadger-java.version>2.0.2</dependency.honeybadger-java.version>
         <dependency.guice.version>4.2.2</dependency.guice.version>
         <dependency.commons-chain.version>1.2</dependency.commons-chain.version>
         <dependency.commons-text.version>1.8</dependency.commons-text.version>
         <dependency.annotations.version>17.0.0</dependency.annotations.version>
         <dependency.jackson-annotations.version>2.10.0</dependency.jackson-annotations.version>
-        <dependency.guice-servlet.version>4.2.2</dependency.guice-servlet.version>
+        <dependency.guice-servlet.version>4.2.3</dependency.guice-servlet.version>
+        <dependency.guice-assistedinject>4.2.3</dependency.guice-assistedinject>
         <dependency.simpleclient.version>0.6.0</dependency.simpleclient.version>
         <dependency.simpleclient_hotspot.version>0.6.0</dependency.simpleclient_hotspot.version>
         <dependency.simpleclient_servlet.version>0.6.0</dependency.simpleclient_servlet.version>
         <dependency.mockito-core.version>3.1.0</dependency.mockito-core.version>
         <dependency.guice-jersey.version>1.0.9</dependency.guice-jersey.version>
+        <dependency.activation.version>1.1.1</dependency.activation.version>
 
         <!-- Plugin versions -->
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
@@ -79,7 +81,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 
         <!-- Maven plugin dependency versions -->
-        <maven-plexus-compiler-javac-errorprone.version>2.8.5</maven-plexus-compiler-javac-errorprone.version>
         <maven-error-prone-core.version>2.3.3</maven-error-prone-core.version>
     </properties>
 
@@ -103,6 +104,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>${dependency.activation.version}</version>
         </dependency>
         <dependency>
             <groupId>com.joyent.manta</groupId>
@@ -138,6 +144,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>${dependency.guice.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-assistedinject</artifactId>
+            <version>${dependency.guice-assistedinject}</version>
         </dependency>
         <dependency>
             <groupId>commons-chain</groupId>

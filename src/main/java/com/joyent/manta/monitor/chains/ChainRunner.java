@@ -36,6 +36,7 @@ public class ChainRunner {
     private final MantaClient client;
     private final ExecutorService executorService;
     private final Runner runnerConfig;
+    private final String testType;
 
     private volatile boolean running = true;
 
@@ -45,13 +46,15 @@ public class ChainRunner {
                        final Runner runnerConfig,
                        final MantaClient client,
                        final Thread.UncaughtExceptionHandler exceptionHandler,
-                       final Map<String, Histogram> requestPutHistogramsMap) {
+                       final Map<String, Histogram> requestPutHistogramsMap,
+                       final String testType) {
         this.chain = chain;
         this.name = runnerConfig.getName();
         this.threads = runnerConfig.getThreads();
         this.client = client;
         this.runnerConfig = runnerConfig;
         this.requestPutHistogramsMap = requestPutHistogramsMap;
+        this.testType = testType;
 
         final ThreadGroup threadGroup = new ThreadGroup(name);
         threadGroup.setDaemon(true);
@@ -72,8 +75,8 @@ public class ChainRunner {
         LOG.info("Starting {} threads to run [{}]", threads, name);
 
         final Callable<Void> callable = () -> {
-            final String baseDir = buildBaseDir();
-            final Function<byte[], String> pathGenerator = new GeneratePathBasedOnSHA256(baseDir);
+            final String baseDirOrBucket = buildBaseDirOrBucket();
+            final Function<byte[], String> pathGenerator = new GeneratePathBasedOnSHA256(baseDirOrBucket);
 
             while (running) {
                 final MantaOperationContext context = new MantaOperationContext()
@@ -83,7 +86,8 @@ public class ChainRunner {
                         .setMaxFileSize(runnerConfig.getMaxFileSize())
                         .setChainClassNameKey(chain.getClass().getSimpleName())
                         .setRequestPutHistograms(requestPutHistogramsMap)
-                        .setTestBaseDir(baseDir);
+                        .setTestBaseDirOrBucket(baseDirOrBucket)
+                        .setTestType(testType);
 
                 chain.execute(context);
             }
@@ -110,7 +114,11 @@ public class ChainRunner {
         return running;
     }
 
-    private String buildBaseDir() {
+    private String buildBaseDirOrBucket() {
+        if ("buckets".equals(testType)) {
+            return client.getContext().getMantaBucketsDirectory()
+                    + SEPARATOR + "manta-monitor-bucket";
+        }
         return client.getContext().getMantaHomeDirectory()
                 + SEPARATOR + "stor" + SEPARATOR + "manta-monitor-data"
                 + SEPARATOR + chain.getClass().getSimpleName();
