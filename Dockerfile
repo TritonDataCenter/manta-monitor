@@ -1,6 +1,7 @@
 FROM ubuntu:xenial
 
 MAINTAINER Elijah Zupancic <elijah@zupancic.name>
+MAINTAINER Ashwin A Nair <ashwin.nair@joyent.com>
 
 # Metadata for Docker containers: http://label-schema.org/
 LABEL org.label-schema.name="Manta Monitor" \
